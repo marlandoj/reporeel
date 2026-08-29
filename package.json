@@ -1,0 +1,14 @@
+{
+  "name": "reporeel",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "bun src/server.ts",
+    "pipeline": "bun src/cli.ts"
+  },
+  "dependencies": {
+    "hono": "^4.10.6",
+    "hyperframes": "^0.8.17"
+  }
+}
