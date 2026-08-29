@@ -55,13 +55,32 @@ class GhError extends Error {
   }
 }
 
+let cachedToken: string | null | undefined;
+
+async function ghToken(): Promise<string | null> {
+  if (cachedToken !== undefined) return cachedToken;
+  const envToken = process.env.GITHUB_TOKEN || process.env.GH_TOKEN;
+  if (envToken) {
+    cachedToken = envToken;
+    return cachedToken;
+  }
+  try {
+    const proc = Bun.spawn(["gh", "auth", "token"], { env: { ...process.env }, stdout: "pipe", stderr: "ignore" });
+    const [out, code] = await Promise.all([new Response(proc.stdout).text(), proc.exited]);
+    cachedToken = code === 0 && out.trim() ? out.trim() : null;
+  } catch {
+    cachedToken = null;
+  }
+  return cachedToken;
+}
+
 async function gh(path: string, raw = false): Promise<any> {
   const headers: Record<string, string> = {
     Accept: raw ? "application/vnd.github.raw+json" : "application/vnd.github+json",
     "User-Agent": "reporeel",
     "X-GitHub-Api-Version": "2022-11-28",
   };
-  const token = process.env.GITHUB_TOKEN || process.env.GH_TOKEN;
+  const token = await ghToken();
   if (token) headers.Authorization = `Bearer ${token}`;
   const res = await fetch(`https://api.github.com${path}`, { headers });
   if (!res.ok) throw new GhError(res.status, `GitHub API ${res.status} for ${path}`);

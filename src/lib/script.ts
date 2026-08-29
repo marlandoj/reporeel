@@ -40,7 +40,7 @@ Rules:
 - Exactly 6 scenes. Scene 1 kind "title". Last scene kind "outro".
 - Include exactly one "stats" scene with 3-4 stats drawn from the real numbers given.
 - Use "list" for features or use cases, "code" for tech stack or key files, "text" for the core idea.
-- Total narration across all scenes: 100 to 140 words. Never invent facts not in the data.
+- Total narration across all scenes: 90 to 115 words. Each scene narration 12 to 22 words. Never invent facts not in the data.
 - Narration must flow as one continuous voiceover when read scene after scene.
 - Every on-screen line, heading, and tagline must be a complete self-contained phrase. Never split a sentence across lines or scenes, never end a line mid-thought.
 - Title scene: lines[0] is the project display name, lines[1] is a complete tagline phrase.
