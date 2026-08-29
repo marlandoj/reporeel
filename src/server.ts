@@ -102,6 +102,14 @@ app.get("/videos/:file", async (c) => {
   return new Response(file, { headers: { ...headers, "Content-Length": String(size) } });
 });
 
+app.get("/og.png", async (c) => {
+  const file = Bun.file(join(import.meta.dir, "..", "public", "og.png"));
+  if (!(await file.exists())) return c.text("Not found", 404);
+  return new Response(file, {
+    headers: { "Content-Type": "image/png", "Cache-Control": "public, max-age=86400" },
+  });
+});
+
 app.get("/healthz", (c) => c.json({ ok: true }));
 
 startWorker();

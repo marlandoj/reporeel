@@ -8,6 +8,9 @@ export function pageHtml(jobId: string | null): string {
 <meta name="description" content="Turn any public GitHub repo into a narrated explainer video. No accounts, no sign-up, no email. Paste a link, get a movie." />
 <meta property="og:title" content="RepoReel — paste a repo, get a movie" />
 <meta property="og:description" content="Turn any public GitHub repo into a narrated explainer video. No accounts required." />
+<meta property="og:image" content="/og.png" />
+<meta name="twitter:card" content="summary_large_image" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2307090d'/%3E%3Cpath d='M10 24V8h7.5a5 5 0 0 1 1.8 9.7L24 24h-4.4l-4-5.6H14V24z' fill='%2322d3ee'/%3E%3C/svg%3E" />
 <style>
   * { box-sizing: border-box; }
   body { margin: 0; background: #07090d; color: #e7edf5; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; min-height: 100vh; }
@@ -158,6 +161,10 @@ export function pageHtml(jobId: string | null): string {
       .then(function (j) {
         if (j.error && j.status === "error") {
           panel.style.display = "none";
+          var hero = document.querySelector(".hero");
+          hero.querySelector("form").style.display = "";
+          hero.querySelector("h1").style.fontSize = "";
+          hero.querySelector("p").style.display = "";
           showErr(j.error);
           clearInterval(pollTimer);
           return;
@@ -182,6 +189,10 @@ export function pageHtml(jobId: string | null): string {
 
   function watch(id) {
     hideErr();
+    var hero = document.querySelector(".hero");
+    hero.querySelector("form").style.display = "none";
+    hero.querySelector("h1").style.fontSize = "34px";
+    hero.querySelector("p").style.display = "none";
     panel.style.display = "block";
     document.getElementById("examples").style.display = "none";
     setStage("queued");
