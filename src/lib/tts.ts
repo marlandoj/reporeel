@@ -17,12 +17,17 @@ export async function synthesizeScenes(
       [HF_BIN, "tts", narrations[i]!, "-o", file, "-v", voice, "--json"],
       { env: { ...process.env }, stdout: "pipe", stderr: "pipe" }
     );
-    const [stdout, code] = await Promise.all([new Response(proc.stdout).text(), proc.exited]);
-    if (code !== 0) throw new Error(`tts failed for scene ${i} (exit ${code})`);
+    const [stdout, stderr, code] = await Promise.all([
+      new Response(proc.stdout).text(),
+      new Response(proc.stderr).text(),
+      proc.exited,
+    ]);
+    if (code !== 0) throw new Error(`tts failed for scene ${i} (exit ${code}): ${stderr.slice(-300)}`);
     const line = stdout.trim().split("\n").filter((l) => l.startsWith("{")).pop();
     if (!line) throw new Error(`tts produced no JSON for scene ${i}`);
     const parsed = JSON.parse(line);
-    if (!parsed.ok || !parsed.durationSeconds) throw new Error(`tts bad result for scene ${i}`);
+    if (!parsed.ok || !parsed.durationSeconds)
+      throw new Error(`tts bad result for scene ${i}: ${String(parsed.error ?? "unknown").slice(0, 300)}`);
     out.push({ file: `assets/nar-${i}.wav`, seconds: Number(parsed.durationSeconds) });
     log(`tts scene ${i}: ${parsed.durationSeconds}s`);
   }
