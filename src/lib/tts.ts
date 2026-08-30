@@ -1,7 +1,10 @@
-import { join } from "node:path";
+import { dirname, join, relative } from "node:path";
 import { log } from "./log";
 
 const HF_BIN = join(import.meta.dir, "..", "..", "node_modules", ".bin", "hyperframes");
+
+const TTS_TIMEOUT_MS = 120_000;
+const TTS_CONCURRENCY = 2;
 
 export type SceneAudio = { file: string; seconds: number };
 
@@ -30,11 +33,21 @@ async function synthesizeOne(
     [HF_BIN, "tts", narration, "-o", file, "-v", voice, "--json"],
     { env: { ...process.env }, stdout: "pipe", stderr: "pipe" }
   );
+  let timedOut = false;
+  const timer = setTimeout(() => {
+    timedOut = true;
+    try {
+      proc.kill();
+    } catch {}
+  }, TTS_TIMEOUT_MS);
   const [stdout, stderr, code] = await Promise.all([
     new Response(proc.stdout).text(),
     new Response(proc.stderr).text(),
     proc.exited,
   ]);
+  clearTimeout(timer);
+  if (timedOut)
+    throw new Error(`tts timed out for scene ${scene} after ${TTS_TIMEOUT_MS / 1000}s`);
   if (code !== 0)
     throw new Error(`tts failed for scene ${scene} (exit ${code}): ${ttsErrorDetail(stdout, stderr)}`);
   const line = stdout.trim().split("\n").filter((l) => l.startsWith("{")).pop();
@@ -48,21 +61,32 @@ async function synthesizeOne(
 export async function synthesizeScenes(
   narrations: string[],
   assetsDir: string,
-  voice = "af_heart"
+  voice = "af_heart",
+  baseDir = dirname(assetsDir)
 ): Promise<SceneAudio[]> {
-  const out: SceneAudio[] = [];
-  for (let i = 0; i < narrations.length; i++) {
-    const file = join(assetsDir, `nar-${i}.wav`);
-    let seconds: number;
-    try {
-      seconds = await synthesizeOne(narrations[i]!, file, voice, i);
-    } catch (first) {
-      log(`tts scene ${i} failed once, retrying: ${first}`);
-      await Bun.sleep(2000);
-      seconds = await synthesizeOne(narrations[i]!, file, voice, i);
+  const out: SceneAudio[] = new Array(narrations.length);
+  let next = 0;
+  async function worker(): Promise<void> {
+    while (true) {
+      const i = next++;
+      if (i >= narrations.length) return;
+      const file = join(assetsDir, `nar-${i}.wav`);
+      let seconds: number;
+      try {
+        seconds = await synthesizeOne(narrations[i]!, file, voice, i);
+      } catch (first) {
+        log(`tts scene ${i} failed once, retrying: ${first}`);
+        await Bun.sleep(2000);
+        seconds = await synthesizeOne(narrations[i]!, file, voice, i);
+      }
+      out[i] = { file: relative(baseDir, file), seconds };
+      log(`tts scene ${i}: ${seconds}s`);
     }
-    out.push({ file: `assets/nar-${i}.wav`, seconds });
-    log(`tts scene ${i}: ${seconds}s`);
   }
+  const workers = Array.from(
+    { length: Math.min(TTS_CONCURRENCY, narrations.length) },
+    () => worker()
+  );
+  await Promise.all(workers);
   return out;
 }
