@@ -58,7 +58,9 @@ export function sweep(): SweepReport {
   }
 
   for (const job of listJobs("status IN ('error','cancelled') AND created_at < ?", [now - FAILED_TTL_HOURS * 3_600_000])) {
-    removeDir(jobDirFor(job.id));
+    const dir = jobDirFor(job.id);
+    if (!existsSync(dir)) continue;
+    removeDir(dir);
     updateJob(job.id, { size_bytes: 0 });
     report.purgedFailed++;
   }
