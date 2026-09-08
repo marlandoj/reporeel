@@ -205,7 +205,7 @@ ${metaTags(ctx)}
     <div class="bar" id="bar"><i id="bar-fill"></i></div>
     <div class="queue-note"><span id="q-note"></span><button class="btn2 sm danger" id="cancel" style="display:none">Cancel</button></div>
   </section>
-  <section class="review" id="review">
+  <section class="review" id="review-panel">
     <h2>Review the script</h2>
     <p class="lead" id="review-lead">Edit anything on screen or in the narration, rewrite a scene with a note, then render. Nothing is rendered until you say so.</p>
     <div id="warnings"></div>
@@ -272,7 +272,7 @@ ${metaTags(ctx)}
   function fmtEta(s) { if (s == null) return ""; if (s < 60) return "about " + s + "s left"; return "about " + Math.ceil(s / 60) + " min left"; }
 
   function show(which) {
-    ["panel", "review", "player", "msg"].forEach(function (id) { $(id).style.display = id === which ? "block" : "none"; });
+    ["panel", "review-panel", "player", "msg"].forEach(function (id) { $(id).style.display = id === which ? "block" : "none"; });
     var compact = which !== null;
     $("f").style.display = compact ? "none" : "";
     $("opts").style.display = compact ? "none" : "";
@@ -519,7 +519,7 @@ ${metaTags(ctx)}
     api("/api/jobs/" + state.id + "/script").then(function (res) {
       if (!res.ok) { state.editorOpen = false; showErr(res.j.error || "Could not load the script."); return; }
       renderEditor(res.j);
-      show("review");
+      show("review-panel");
       $("h1").textContent = "Your script is ready.";
     });
   }
