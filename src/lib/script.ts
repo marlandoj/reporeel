@@ -1,8 +1,10 @@
 import type { StoryFacts } from "./github";
 import { FORMATS, type JobOptions } from "./options";
+import { styleSpec } from "./styles";
 import { log } from "./log";
+import { steScriptRules } from "./ste100";
 
-export type SceneKind = "title" | "stats" | "text" | "list" | "code" | "outro";
+export type SceneKind = "title" | "stats" | "text" | "list" | "code" | "analogy" | "equation" | "outro";
 
 export type Scene = {
   kind: SceneKind;
@@ -18,7 +20,7 @@ export type VideoScript = {
   scenes: Scene[];
 };
 
-const KINDS: SceneKind[] = ["title", "stats", "text", "list", "code", "outro"];
+const KINDS: SceneKind[] = ["title", "stats", "text", "list", "code", "analogy", "equation", "outro"];
 
 const MODELS = [
   "anthropic/claude-sonnet-4.5",
@@ -26,8 +28,22 @@ const MODELS = [
   "openai/gpt-4o-mini",
 ];
 
+const KIND_ENUM =
+  '"kind": "title" | "stats" | "text" | "list" | "code" | "analogy" | "equation" | "outro"';
+
+const SHARED_VOICE_TAIL =
+  "- Narration must flow as one continuous voiceover when read scene after scene.\n" +
+  "- Never claim awards, rankings, placements, adoption, or outcomes unless the data states them explicitly.\n" +
+  "- No emojis anywhere. Values like \"12.4k\" for numbers over 999.";
+
+const SHARED_BLUEPRINT_TAIL =
+  'Use "list" for features or use cases, "code" for tech stack or key files, "text" for the core idea. ' +
+  'Every "analogy" and "equation" line must be under 40 characters. ' +
+  "On a vertical 9:16 video keep every on-screen line short and readable on a phone.";
+
 function systemPrompt(opts: JobOptions): string {
   const f = FORMATS[opts.format];
+  const st = styleSpec(opts.style);
   return `You write scripts for short narrated explainer videos about GitHub repositories.
 Return ONLY a JSON object, no markdown fences, matching:
 {
@@ -35,7 +51,7 @@ Return ONLY a JSON object, no markdown fences, matching:
   "tagline": "one line under 60 chars",
   "scenes": [
     {
-      "kind": "title" | "stats" | "text" | "list" | "code" | "outro",
+      ${KIND_ENUM},
       "heading": "on-screen heading, under ${f.headingMax} chars",
       "lines": ["up to 3 short on-screen lines, each under ${f.lineMax} chars"],
       "stats": [{"value": "12.4k", "label": "stars"}],
@@ -46,15 +62,19 @@ Return ONLY a JSON object, no markdown fences, matching:
 Rules:
 - Exactly 6 scenes. Scene 1 kind "title". Last scene kind "outro".
 - Include exactly one "stats" scene with 3-4 stats drawn from the real numbers given.
-- Use "list" for features or use cases, "code" for tech stack or key files, "text" for the core idea.
+${SHARED_BLUEPRINT_TAIL}
 - Total narration across all scenes: 90 to 115 words. Each scene narration 12 to 22 words. Never invent facts not in the data.
-- Never claim awards, rankings, placements, adoption, or outcomes unless the data states them explicitly.
-- Narration must flow as one continuous voiceover when read scene after scene.
 - Every on-screen line, heading, and tagline must be a complete self-contained phrase. Never split a sentence across lines or scenes, never end a line mid-thought.
 - Title scene: lines[0] is the project display name, lines[1] is a complete tagline phrase.
 - The outro narration ends with a short memorable closing line about the project.
-- No emojis anywhere. Values like "12.4k" for numbers over 999.
-- The video is ${f.ratio} (${f.label.toLowerCase()}); keep on-screen text within the character limits above.`;
+${SHARED_VOICE_TAIL}
+
+VOICE — this reel is styled "${st.label}":
+${st.voice}
+
+${opts.plain ? `PLAIN-LANGUAGE MODE (ASD-STE100 Simplified Technical English):
+${steScriptRules()}
+` : ""}The video is ${f.ratio} (${f.label.toLowerCase()}); keep on-screen text within the character limits above.`;
 }
 
 function groundingInstructions(facts: StoryFacts): string {
@@ -203,10 +223,13 @@ export async function regenerateScene(
   const current = script.scenes[index];
   if (!current) throw new Error("no such scene");
   const f = FORMATS[opts.format];
+  const st = styleSpec(opts.style);
   const system = `You rewrite ONE scene of a narrated explainer video script about a GitHub repository.
 Return ONLY a JSON object for the single rewritten scene, no markdown fences:
 {"kind": "${current.kind}", "heading": "under ${f.headingMax} chars", "lines": ["up to 3 lines, each under ${f.lineMax} chars"], "stats": [{"value": "..", "label": ".."}], "narration": "12-22 words, plain spoken English"}
-Rules: keep the same kind ("${current.kind}"). Keep the narration flowing naturally from the previous scene into the next one. Never invent facts not in the data. Never claim awards, rankings, placements, or outcomes unless the data states them explicitly. No emojis. Complete self-contained phrases only.`;
+Rules: keep the same kind ("${current.kind}"). Keep the narration flowing naturally from the previous scene into the next one. Never invent facts not in the data. Never claim awards, rankings, placements, or outcomes unless the data states them explicitly. No emojis. Complete self-contained phrases only.
+VOICE — the reel is styled "${st.label}": ${st.voice}
+${opts.plain ? `PLAIN-LANGUAGE MODE (ASD-STE100): ${steScriptRules()}\n` : ""}`;
   const user = `${focusInstructions(facts)}\n${groundingInstructions(facts)}\n\nFULL CURRENT SCRIPT (for context):\n${JSON.stringify(script)}\n\nREWRITE SCENE INDEX ${index} (kind "${current.kind}"). ${hint ? `Author's note: ${hint.slice(0, 300)}` : "Make it sharper, more specific, and better grounded in the data."}\n\nDATA:\n${JSON.stringify(slimFacts(facts))}`;
   return withFallback("scene rewrite", async (model) => {
     const scene = cleanScene(await chat(model, system, user, 800));
@@ -263,6 +286,44 @@ function matchesKnown(n: number, known: number[]): boolean {
 
 function norm(s: string): string {
   return s.replace(/\s+/g, "").toLowerCase();
+}
+
+export function scriptToText(script: VideoScript): string {
+  return [
+    script.title,
+    "",
+    script.tagline,
+    "",
+    ...script.scenes.flatMap((s, i) => [
+      `Scene ${i + 1} - ${s.heading}`,
+      ...(s.stats ?? []).map((st) => `  ${st.value} ${st.label}`),
+      ...(s.lines ?? []).map((l) => `  ${l}`),
+      `  Narration: ${s.narration}`,
+      "",
+    ]),
+  ].join("\n");
+}
+
+export function styleFindings(script: VideoScript, opts: JobOptions): string[] {
+  const st = styleSpec(opts.style);
+  const findings: string[] = [];
+  const whole = `${script.title} ${script.tagline} ${script.scenes
+    .map((s) => `${s.heading} ${(s.lines ?? []).join(" ")} ${s.narration}`)
+    .join(" ")}`;
+  if (st.avoid.length > 0 && st.avoid.some((rx) => rx.test(whole))) {
+    findings.push(`Style: the "${st.label}" voice avoids ${st.avoidLabel}, but those words are still in the script.`);
+  }
+  const analogy = script.scenes.filter((s) => s.kind === "analogy").length;
+  if (st.expect.analogy && analogy === 0) findings.push(`Style: the "${st.label}" blueprint wants an "analogy" scene and the script has none.`);
+  if (!st.expect.analogy && analogy > 0) findings.push(`Style: the "${st.label}" blueprint does not use "analogy" scenes.`);
+  if (st.expect.equation) {
+    if (!script.scenes.some((s) => s.kind === "equation")) {
+      findings.push(`Style: the "${st.label}" blueprint wants an "equation" scene and the script has none.`);
+    }
+  } else if (script.scenes.some((s) => s.kind === "equation")) {
+    findings.push(`Style: the "${st.label}" blueprint does not use "equation" scenes.`);
+  }
+  return findings;
 }
 
 export function groundingWarnings(script: VideoScript, facts: StoryFacts): string[] {

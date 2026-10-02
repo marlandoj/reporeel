@@ -30,7 +30,7 @@ export function saveScript(job: Job, raw: unknown): ReviewState {
   next.scenes.forEach((s, i) => {
     s.kind = current.scenes[i]!.kind;
   });
-  const warnings = writeScript(jobDirFor(job.id), next, readFacts(jobDirFor(job.id)));
+  const warnings = writeScript(jobDirFor(job.id), next, readFacts(jobDirFor(job.id)), jobOptions(job));
   updateJob(job.id, { title: next.title, warnings: JSON.stringify(warnings), stage_started_at: Date.now() });
   return { script: next, warnings, rewritesLeft: Math.max(0, MAX_REWRITES - job.rewrites) };
 }
@@ -46,7 +46,7 @@ export async function rewriteScene(job: Job, index: number, hint: string): Promi
   const scene = await regenerateScene(facts, jobOptions(job), script, index, hint);
   if (scene.kind === "outro") scene.lines = script.scenes[index]!.lines;
   script.scenes[index] = scene;
-  const warnings = writeScript(dir, script, facts);
+  const warnings = writeScript(dir, script, facts, jobOptions(job));
   updateJob(job.id, { warnings: JSON.stringify(warnings), stage_started_at: Date.now() });
   const fresh = getJob(job.id)!;
   return { script, warnings, rewritesLeft: Math.max(0, MAX_REWRITES - fresh.rewrites) };
