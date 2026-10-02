@@ -24,8 +24,36 @@ The finished reel lives at a shareable `/v/:id` link (with its own poster and OG
 | --- | --- | --- |
 | `grounding` | `readme` \| `code` \| `both` | what the script is allowed to draw from: README and metadata, the source tree + manifest + entry file, or both (default `both`) |
 | `format` | `landscape` 16:9 1280x720 \| `vertical` 9:16 720x1280 \| `square` 1:1 1080x1080 | landscape suits YouTube, X, and LinkedIn; vertical suits Shorts, Reels, and TikTok; square suits feeds |
+| `style` | `studio` \| `3b1b` \| `eli5` \| `whiteboard` \| `terminal` | visual treatment. `studio` is the original dark card deck. `3b1b` renders a 3Blue1Brown-style chalkboard explainer with hand-drawn SVG mobjects. `eli5` is a warm, plain-language explainer. `whiteboard` is light marker on white. `terminal` is a monospace dev-tool look. See **Visual styles** below. |
+| `plain` | `true` \| `false` | write the script in Simplified Technical English under ASD-STE100, and check the narration mechanically against the rules. The report is attached to the job (default `false`) |
 | `captions` | `true` \| `false` | burned-in captions plus an `.srt` sidecar (default on for vertical and square) |
 | `review` | `true` \| `false` | pause after scripting for an editable review step (default `true`) |
+
+### Visual styles
+
+The `style` option picks the whole look of the reel: palette, type, motion, camera drift, and the scene composition engine.
+
+| Style | Layout | What it looks like |
+| --- | --- | --- |
+| `studio` | cards | The original look. Dark grid, stat cards, code panels, the works. Unchanged. |
+| `3b1b` | board | A 3Blue1Brown-style chalkboard. Every scene is a two-column frame: a short statement on the left, a hand-drawn SVG diagram on the right. Mobjects grow and draw in — the ring-network for the title, bar charts for stats, a connected spine for lists, a code panel with a cursor, nested rings for the core idea. The 3Blue1Brown feel comes from the LaTeX `cmmi10` math italic for numbers and `cmsy10` symbols (`3▷2k`, braces), and from `transform-box: fill-box` so each stroke scales about its own centre instead of the SVG origin. |
+| `eli5` | cards | Warm paper, rounded cards, high contrast, generous spacing. The narration is also rewritten in an explain-it-like voice, so the words and the frames match. |
+| `whiteboard` | cards | Light marker on white. Big friendly type, thin rules. |
+| `terminal` | cards | Monospace, dense, dev-tool flavoured. Good for infrastructure repos. |
+
+```bash
+bun src/cli.ts https://github.com/owner/repo --style 3b1b
+bun src/cli.ts https://github.com/owner/repo --style eli5
+```
+
+### Plain language (ASD-STE100)
+
+The second idea from Karpathy's tips list is that you can *explain something in ASD-STE100*. RepoReel implements that as two things that share one rule engine in `src/lib/ste100.ts`:
+
+1. **A narration mode.** With `--plain` (or the checkbox in the UI), the script is written under the controlled-language rules of Simplified Technical English and then linted before it is sent to the voice. Any breach becomes a job warning instead of a silent mistake.
+2. **A standalone operator tool at `/ste100`.** Paste a README, a generated script, or any technical text and get a rule-by-rule report: which rule fired, on which excerpt, and what the fix is. It can also rewrite the text, at three strengths, with or without an AI pass. A static quick-reference is downloadable as PDF or Markdown at `/downloads/ste100-quick-reference.pdf`.
+
+This is a practical subset of the ASD-STE100 Issue 9 word rules, paraphrased and implemented in software. The check is mechanical: it finds what a program can prove, not what a judge would decide. **Full compliance needs the official dictionary**, which is a free download at asd-ste100.org. Treat RepoReel as an unofficial aid, never as a certification.
 
 ### Supported URLs
 
@@ -92,6 +120,8 @@ Hono (Bun) server ── SQLite job queue ── serial worker
               scene JSON → HyperFrames HTML │  src/lib/compose.ts
               headless Chrome → MP4         │  src/lib/render.ts
               review / cancel / refresh     │  src/lib/review.ts, src/lib/queue.ts
+              style palettes + layouts      │  src/lib/styles.ts
+              ASD-STE100 rules + linter     │  src/lib/ste100.ts, src/lib/steapi.ts
               retention sweep + cleanup     │  src/lib/retention.ts, src/lib/files.ts
 ```
 

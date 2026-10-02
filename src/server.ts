@@ -12,9 +12,38 @@ import {
 import { reviewState, saveScript, rewriteScene } from "./lib/review";
 import { startRetention, storageStats } from "./lib/retention";
 import { FORMATS } from "./lib/options";
+import { STYLES, type Style } from "./lib/styles";
+import { lintText, rewritePlain, steQuickReference } from "./lib/steapi";
+import { stePageHtml } from "./lib/ste100page";
+import { scriptToText } from "./lib/script";
+import { readScript } from "./lib/pipeline";
 import { log } from "./lib/log";
 
 const app = new Hono();
+
+const STE_MIN_INTERVAL_MS = 12_000;
+const STE_MAX_CHARS = 12_000;
+const steLastAt = new Map<string, number>();
+const steCounts = new Map<string, number>();
+
+function tooManySte(limit: number): boolean {
+  const d = new Date();
+  const day = `${d.getUTCFullYear()}-${d.getUTCMonth() + 1}-${d.getUTCDate()}`;
+  const key = `${day}:${limit}`;
+  const n = steCounts.get(key) ?? 0;
+  steCounts.set(key, n + 1);
+  if (steCounts.size > 400) for (const k of [...steCounts.keys()].slice(0, 200)) steCounts.delete(k);
+  return n >= limit;
+}
+
+function steRateLimited(ip: string): boolean {
+  const now = Date.now();
+  const last = steLastAt.get(ip) ?? 0;
+  if (now - last < STE_MIN_INTERVAL_MS) return true;
+  steLastAt.set(ip, now);
+  if (steLastAt.size > 5000) steLastAt.clear();
+  return false;
+}
 
 function clientIp(c: Context): string {
   const fwd = c.req.header("x-forwarded-for");
@@ -50,6 +79,7 @@ function progressInfo(job: Job): { done: number; total: number; etaSeconds: numb
 function jobView(job: Job, owner: boolean) {
   const opts = jobOptions(job);
   const spec = FORMATS[opts.format];
+  const style = STYLES[opts.style as Style]!;
   let warnings: string[] = [];
   try {
     warnings = job.warnings ? JSON.parse(job.warnings) : [];
@@ -65,6 +95,7 @@ function jobView(job: Job, owner: boolean) {
     total: job.total,
     options: opts,
     format: { key: opts.format, ratio: spec.ratio, label: spec.label, w: spec.w, h: spec.h },
+    style: { key: opts.style, label: style.label, layout: style.layout, plain: opts.plain },
     captions: opts.captions && (job.status === "done" ? hasSrt(job.id) : true),
     position: queuePosition(job),
     progress: progressInfo(job),
@@ -299,6 +330,86 @@ app.get("/og.png", async (c) => {
   const file = Bun.file(join(import.meta.dir, "..", "public", "og.png"));
   if (!(await file.exists())) return c.text("Not found", 404);
   return new Response(file, { headers: { "Content-Type": "image/png", "Cache-Control": "public, max-age=86400" } });
+});
+
+app.get("/ste100", (c) => c.html(stePageHtml()));
+
+app.get("/api/ste100/reference", (c) => c.json(steQuickReference()));
+
+app.get("/downloads/ste100-quick-reference.pdf", async (c) => {
+  const file = Bun.file(join(import.meta.dir, "..", "public", "ste100", "asd-ste100-quick-reference.pdf"));
+  if (!(await file.exists())) return c.text("The quick-reference PDF is not built yet.", 404);
+  return new Response(file, {
+    headers: {
+      "Content-Type": "application/pdf",
+      "Content-Disposition": 'attachment; filename="ASD-STE100-quick-reference.pdf"',
+      "Cache-Control": "public, max-age=86400",
+    },
+  });
+});
+
+app.get("/downloads/ste100-quick-reference.md", async (c) => {
+  const file = Bun.file(join(import.meta.dir, "..", "public", "ste100", "asd-ste100-quick-reference.md"));
+  if (!(await file.exists())) return c.text("Not found", 404);
+  return new Response(file, {
+    headers: {
+      "Content-Type": "text/markdown; charset=utf-8",
+      "Content-Disposition": 'attachment; filename="ASD-STE100-quick-reference.md"',
+    },
+  });
+});
+
+app.post("/api/ste100/lint", async (c) => {
+  let text = "";
+  try {
+    const body: any = await c.req.json();
+    text = String(body?.text ?? "").slice(0, STE_MAX_CHARS);
+  } catch {}
+  if (!text.trim()) return c.json({ error: "Paste some text to check." }, 400);
+  return c.json(lintText(text));
+});
+
+app.post("/api/ste100/rewrite", async (c) => {
+  let body: any;
+  try {
+    body = await c.req.json();
+  } catch {
+    return c.json({ error: "Invalid request." }, 400);
+  }
+  const text = String(body?.text ?? "").slice(0, STE_MAX_CHARS);
+  if (!text.trim()) return c.json({ error: "Paste some text to rewrite." }, 400);
+  if (!process.env.OPENROUTER_API_KEY) return c.json({ error: "Rewriting is not configured on this server right now. Use Check only." }, 503);
+  if (tooManySte(Number(process.env.REPOREEL_STE_DAILY ?? 80))) {
+    return c.json({ error: "Rewrite budget for today is used up. Check mode still works." }, 429);
+  }
+  if (steRateLimited(clientIp(c))) return c.json({ error: "Slow down. One rewrite every 12 seconds." }, 429);
+  try {
+    const revised = await rewritePlain(text, String(body?.strength ?? "soft"), String(body?.tone ?? "keep"));
+    return c.json({ ...lintText(revised), output: revised });
+  } catch (e) {
+    return errorResponse(c, e);
+  }
+});
+
+app.get("/api/ste100/scripts", (c) => {
+  return c.json(
+    recentDone(200)
+      .filter((j) => j.status === "done" && existsSync(join(jobDirFor(j.id), "script.json")))
+      .slice(0, 40)
+      .map((j) => ({ id: j.id, canonical: j.canonical, title: j.title || j.canonical }))
+  );
+});
+
+app.get("/api/ste100/scripts/:id", (c) => {
+  const id = c.req.param("id");
+  if (!/^[\w-]{4,40}$/.test(id)) return c.json({ error: "Bad id." }, 400);
+  const path = join(jobDirFor(id), "script.json");
+  if (!existsSync(path)) return c.json({ error: "No script found for that reel." }, 404);
+  try {
+    return c.json({ text: scriptToText(readScript(jobDirFor(id))) });
+  } catch (e) {
+    return errorResponse(c, e);
+  }
 });
 
 app.get("/healthz", (c) => {

@@ -1,5 +1,12 @@
 import type { Job } from "./db";
 import { FORMATS, parseOptions } from "./options";
+import { STYLES, type StyleSpec } from "./styles";
+
+const STYLE_JSON = JSON.stringify(
+  Object.fromEntries(
+    Object.values(STYLES).map((s: StyleSpec) => [s.id, { label: s.label, blurb: s.blurb }])
+  )
+);
 
 export type PageContext = { job: Job; poster: boolean } | null;
 
@@ -75,6 +82,13 @@ ${metaTags(ctx)}
   button.cta:disabled { opacity: .5; cursor: default; transform: none; box-shadow: none; }
   .opts { max-width: 680px; margin: 22px auto 0; display: grid; grid-template-columns: 1fr 1fr; gap: 14px 22px; text-align: left; background: rgba(231,237,245,.03); border: 1px solid rgba(231,237,245,.08); border-radius: 18px; padding: 18px 22px; }
   .opt-label { display: block; font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #5b6878; font-weight: 700; margin-bottom: 8px; }
+  .opt2 { grid-column: 1 / -1; }
+  select { appearance: none; -webkit-appearance: none; width: 100%; background: rgba(231,237,245,.05); border: 1px solid rgba(231,237,245,.14); color: #e7edf5; border-radius: 12px; padding: 12px 40px 12px 15px; font-size: 15px; font-family: inherit; cursor: pointer; outline: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%239aa7b8' stroke-width='1.6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 14px center; background-size: 12px; }
+  select:hover, select:focus { border-color: rgba(34,211,238,.5); }
+  select option { background: #0b0f16; color: #e7edf5; }
+  .opt-blurb { margin: 8px 0 0; font-size: 13px; color: #5b6878; line-height: 1.45; }
   .seg { display: inline-flex; background: rgba(231,237,245,.05); border: 1px solid rgba(231,237,245,.1); border-radius: 12px; padding: 3px; gap: 3px; flex-wrap: wrap; }
   .seg button { background: transparent; border: none; color: #9aa7b8; font-size: 14px; font-weight: 600; padding: 8px 13px; border-radius: 9px; cursor: pointer; transition: all .15s; font-family: inherit; }
   .seg button.on { background: rgba(34,211,238,.16); color: #22d3ee; }
@@ -136,6 +150,10 @@ ${metaTags(ctx)}
   .msg { max-width: 680px; margin: 40px auto 0; text-align: center; display: none; }
   .msg h2 { font-size: 24px; margin: 0 0 8px; }
   .msg p { color: #9aa7b8; margin: 0 0 20px; }
+  .toolcard { position: relative; z-index: 1; max-width: 680px; margin: 22px auto 0; display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; text-align: left; background: rgba(251,191,36,.05); border: 1px solid rgba(251,191,36,.22); border-radius: 18px; padding: 20px 24px; }
+  .toolcard .tt { font-weight: 700; font-size: 16px; color: #f5c76b; }
+  .toolcard .td { color: #9aa7b8; font-size: 14px; margin-top: 5px; line-height: 1.5; max-width: 430px; }
+  .toolcard .btn2 { white-space: nowrap; }
   .examples { margin-top: 88px; }
   .examples h3 { font-size: 15px; letter-spacing: .18em; text-transform: uppercase; color: #5b6878; text-align: center; margin-bottom: 28px; font-weight: 700; }
   .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px; align-items: start; }
@@ -185,11 +203,30 @@ ${metaTags(ctx)}
           <button type="button" data-v="square">1:1<small>Feeds</small></button>
         </div>
       </div>
+      <div class="opt2">
+        <label class="opt-label" for="style">Visual style</label>
+        <select id="style">
+          <option value="studio" selected>Studio — neon dark, technical, the RepoReel default</option>
+          <option value="3b1b">3b1b — black canvas, drawn diagrams, one idea at a time</option>
+          <option value="eli5">ELI5 — warm paper, big friendly type, everyday analogies</option>
+          <option value="whiteboard">Whiteboard — hand-drawn ink, sticky notes, sketch reveals</option>
+          <option value="terminal">Terminal — monospace phosphor green, typed-in output</option>
+        </select>
+        <p class="opt-blurb" id="style-blurb">The style picks the look, the motion, and the voice the narrator writes in.</p>
+      </div>
       <label class="chk"><input type="checkbox" id="captions" /> Burned-in captions <small>+ SRT file</small></label>
+      <label class="chk"><input type="checkbox" id="plain" /> Plain language <small>ASD-STE100, aerospace controlled language</small></label>
       <label class="chk"><input type="checkbox" id="review" checked /> Review the script before rendering</label>
     </div>
     <div class="hint" id="hint">Works with repo, pull request, release, and compare URLs. Try <code>owner/repo@v1.2.0</code> for a changelog reel.</div>
     <div class="err" id="err"></div>
+  </section>
+  <section class="toolcard" id="toolcard">
+    <div>
+      <div class="tt">Plain-language writer</div>
+      <div class="td">Paste any text and get it back in ASD-STE100 Simplified Technical English, with a rule-by-rule report you can download. Free, no account.</div>
+    </div>
+    <a class="btn2" href="/ste100">Open the writer &rarr;</a>
   </section>
   <section class="panel" id="panel">
     <h2 id="p-title">Building your reel</h2>
@@ -245,6 +282,7 @@ ${metaTags(ctx)}
 </main>
 <footer>
   Built solo in 48 hours for <a href="https://hackyard.tech" target="_blank" rel="noopener">Hackyard Yard #1</a> (2nd place) — theme: no accounts.<br />
+  Also: the <a href="/ste100">plain-language writer</a> (ASD-STE100) for operators.<br />
   Open source at <a href="https://github.com/marlandoj/reporeel" target="_blank" rel="noopener">github.com/marlandoj/reporeel</a>. Videos are AI-generated from public repo data.
 </footer>
 <script>
@@ -252,9 +290,24 @@ ${metaTags(ctx)}
   var JOB = ${jobId ? JSON.stringify(jobId) : "null"};
   var ORDER = ["queued", "ingesting", "scripting", "review", "voicing", "rendering"];
   var FORMAT_LABEL = { landscape: "16:9 landscape", vertical: "9:16 vertical", square: "1:1 square" };
+  var STYLE_META = ${STYLE_JSON};
   function $(id) { return document.getElementById(id); }
   var state = { id: null, job: null, script: null, pollTimer: null, editorOpen: false, cachedNotice: false, captionsTouched: false };
-  var opts = { grounding: "both", format: "landscape", captions: false, review: true };
+  var opts = { grounding: "both", format: "landscape", style: "studio", plain: false, captions: false, review: true };
+  var STYLE_META = ${STYLE_JSON};
+  try {
+    var saved = JSON.parse(localStorage.getItem("rr-opts") || "null");
+    if (saved && saved.style) opts.style = saved.style;
+    if (saved && saved.plain != null) opts.plain = !!saved.plain;
+  } catch (e) {}
+  function persistOpts() { try { localStorage.setItem("rr-opts", JSON.stringify({ style: opts.style, plain: opts.plain })); } catch (e) {} }
+  function applyStyleSelect() {
+    var sel = $("style");
+    sel.value = opts.style;
+    $("plain").checked = opts.plain;
+    var meta = STYLE_META[opts.style];
+    if (meta) $("style-blurb").textContent = meta.blurb + (opts.plain ? " Plain language is on, so the script also follows ASD-STE100." : "");
+  }
 
   function ownerToken(id) { try { return localStorage.getItem("rr-owner-" + id) || ""; } catch (e) { return ""; } }
   function saveOwner(id, t) { try { localStorage.setItem("rr-owner-" + id, t); } catch (e) {} }
@@ -279,6 +332,7 @@ ${metaTags(ctx)}
     $("hint").style.display = compact ? "none" : "";
     $("lede").style.display = compact ? "none" : "";
     $("noacct").style.display = compact ? "none" : "";
+    $("toolcard").style.display = compact ? "none" : "flex";
     $("h1").style.fontSize = compact ? "34px" : "";
     $("examples").style.display = compact ? "none" : $("examples").style.display;
   }
@@ -299,6 +353,9 @@ ${metaTags(ctx)}
   });
   $("captions").addEventListener("change", function () { state.captionsTouched = true; opts.captions = this.checked; });
   $("review").addEventListener("change", function () { opts.review = this.checked; });
+  $("style").addEventListener("change", function () { opts.style = this.value; applyStyleSelect(); persistOpts(); });
+  $("plain").addEventListener("change", function () { opts.plain = this.checked; applyStyleSelect(); persistOpts(); });
+  applyStyleSelect();
 
   function setStage(status, reviewEnabled) {
     var idx = ORDER.indexOf(status);
@@ -360,6 +417,9 @@ ${metaTags(ctx)}
     var meta = [];
     if (j.format) meta.push("<b>" + FORMAT_LABEL[j.format.key] + "</b>");
     if (j.options) meta.push("grounded in " + (j.options.grounding === "both" ? "README + code" : j.options.grounding));
+    var stMeta = j.options ? STYLE_META[j.options.style] : null;
+    if (stMeta) meta.push(stMeta.label.toLowerCase() + " style");
+    if (j.options && j.options.plain) meta.push("plain language");
     if (j.captions) meta.push("captions");
     if (j.total) meta.push(Math.round(j.total) + "s");
     meta.push(j.views === 1 ? "1 view" : (j.views || 0) + " views");
@@ -422,7 +482,7 @@ ${metaTags(ctx)}
     var general = rs.warnings.filter(function (w) { return !/^Scene \\d+:/.test(w); });
     if (rs.warnings.length) {
       var w = el("div", "warn");
-      w.textContent = rs.warnings.length + " grounding " + (rs.warnings.length === 1 ? "warning" : "warnings") + ": some on-screen numbers or code lines could not be matched to the repo data. They are flagged on the scene below. Edit them or rewrite the scene.";
+      w.textContent = rs.warnings.length + " " + (rs.warnings.length === 1 ? "check" : "checks") + " to fix: every finding below is flagged on the scene it came from. Numbers and code lines must match the repo data, and the plain-language pass follows ASD-STE100. Edit them or rewrite the scene.";
       warnBox.appendChild(w);
       general.forEach(function (g) { warnBox.appendChild(el("div", "warn", g)); });
     }

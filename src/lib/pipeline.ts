@@ -1,11 +1,13 @@
 import { join } from "node:path";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { parseTarget, canonical, fetchStoryFacts, type StoryFacts, type Target } from "./github";
-import { generateScript, groundingWarnings, validateScript, type VideoScript } from "./script";
+import { generateScript, groundingWarnings, styleFindings, validateScript, type VideoScript } from "./script";
 import { synthesizeScenes } from "./tts";
 import { buildComposition } from "./compose";
 import { renderComposition, makePoster, type RenderHooks } from "./render";
 import { cleanupAfterRender } from "./files";
+import { styleSpec } from "./styles";
+import { plainLanguageFindings } from "./ste100";
 import type { JobOptions } from "./options";
 import { log } from "./log";
 
@@ -51,8 +53,12 @@ export function readFacts(jobDir: string): StoryFacts {
   return JSON.parse(readFileSync(join(jobDir, "facts.json"), "utf8")) as StoryFacts;
 }
 
-export function writeScript(jobDir: string, script: VideoScript, facts: StoryFacts): string[] {
-  const warnings = groundingWarnings(script, facts);
+export function writeScript(jobDir: string, script: VideoScript, facts: StoryFacts, opts: JobOptions): string[] {
+  const warnings = [
+    ...groundingWarnings(script, facts),
+    ...styleFindings(script, opts),
+    ...(opts.plain ? plainLanguageFindings(script.scenes.map((s) => s.narration).join(" ")).map((f) => `Plain language: ${f.message} ("${f.excerpt}".)`) : []),
+  ];
   writeFileSync(join(jobDir, "script.json"), JSON.stringify(script, null, 2));
   writeFileSync(join(jobDir, "warnings.json"), JSON.stringify(warnings, null, 2));
   return warnings;
@@ -72,9 +78,14 @@ export async function prepare(url: string, jobDir: string, opts: JobOptions, hoo
   hooks.onStage?.("scripting");
   hooks.checkCancel?.();
   const script = await generateScript(facts, opts);
-  const outro = script.scenes[script.scenes.length - 1];
-  if (outro && outro.kind === "outro") outro.lines = [facts.url.replace(/^https?:\/\//, "")];
-  const warnings = writeScript(jobDir, script, facts);
+  if (styleSpec(opts.style).layout === "board") {
+    const outro = script.scenes[script.scenes.length - 1];
+    if (outro && outro.kind === "outro") outro.heading = script.title;
+  } else {
+    const outro = script.scenes[script.scenes.length - 1];
+    if (outro && outro.kind === "outro") outro.lines = [facts.url.replace(/^https?:\/\//, "")];
+  }
+  const warnings = writeScript(jobDir, script, facts, opts);
   if (warnings.length) log(`grounding warnings (${warnings.length}): ${warnings.join(" | ")}`);
 
   return {
