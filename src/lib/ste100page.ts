@@ -36,7 +36,8 @@ export function stePageHtml(): string {
   .card h2 { font-size: 15px; letter-spacing: .14em; text-transform: uppercase; color: #5b6878; margin: 0 0 14px; font-weight: 700; }
   textarea, select, input[type=text] { width: 100%; background: rgba(231,237,245,.05); border: 1px solid rgba(231,237,245,.14); color: #e7edf5; border-radius: 12px; padding: 12px 14px; font-size: 15px; outline: none; font-family: inherit; }
   textarea { resize: vertical; min-height: 280px; line-height: 1.55; font-size: 15px; }
-  textarea:focus, select:focus, input:focus { border-color: rgba(34,211,238,.5); }
+  select option, select optgroup { background: #0b0f16; color: #e7edf5; }
+  select option:hover, select option:focus, select option:checked { background: #17222f; color: #ffffff; }
   .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 12px; }
   .row.sel { align-items: stretch; }
   .row.sel > div { flex: 1; min-width: 140px; }
