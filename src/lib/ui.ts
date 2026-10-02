@@ -94,9 +94,9 @@ ${metaTags(ctx)}
   .seg button.on { background: rgba(34,211,238,.16); color: #22d3ee; }
   .seg button small { display: block; font-size: 11px; font-weight: 500; color: #5b6878; margin-top: 1px; }
   .seg button.on small { color: rgba(34,211,238,.7); }
-  .chk { display: flex; align-items: center; gap: 10px; font-size: 15px; color: #cdd7e3; cursor: pointer; margin-top: 6px; }
+  .chk { display: flex; align-items: center; gap: 10px; font-size: 15px; color: #cdd7e3; cursor: pointer; margin-top: 6px; white-space: nowrap; }
   .chk input { width: 18px; height: 18px; accent-color: #22d3ee; }
-  .chk small { color: #5b6878; font-size: 13px; }
+  .chk small { color: #5b6878; font-size: 13px; white-space: nowrap; }
   .err { max-width: 680px; margin: 18px auto 0; color: #fca5a5; background: rgba(248,113,113,.08); border: 1px solid rgba(248,113,113,.25); border-radius: 12px; padding: 12px 18px; font-size: 15px; display: none; }
   .panel { max-width: 680px; margin: 40px auto 0; background: rgba(231,237,245,.04); border: 1px solid rgba(231,237,245,.1); border-radius: 20px; padding: 32px; display: none; }
   .panel h2 { margin: 0 0 6px; font-size: 22px; font-weight: 700; }
@@ -215,7 +215,7 @@ ${metaTags(ctx)}
         <p class="opt-blurb" id="style-blurb">The style picks the look, the motion, and the voice the narrator writes in.</p>
       </div>
       <label class="chk"><input type="checkbox" id="captions" /> Burned-in captions <small>+ SRT file</small></label>
-      <label class="chk"><input type="checkbox" id="plain" /> Plain language <small>ASD-STE100, aerospace controlled language</small></label>
+      <label class="chk"><input type="checkbox" id="plain" /> Plain language <small>ASD-STE100 Simplified Technical English</small></label>
       <label class="chk"><input type="checkbox" id="review" checked /> Review the script before rendering</label>
     </div>
     <div class="hint" id="hint">Works with repo, pull request, release, and compare URLs. Try <code>owner/repo@v1.2.0</code> for a changelog reel.</div>
