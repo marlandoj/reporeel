@@ -6,7 +6,7 @@ import { log } from "./lib/log";
 
 function usage(): never {
   process.stderr.write(
-    `usage: bun src/cli.ts <github-url> [--format landscape|vertical|square] [--grounding readme|code|both] [--style <id>] [--plain] [--captions] [--out-dir <dir>]\n` +
+    `usage: bun src/cli.ts <github-url> [--format landscape|vertical|square] [--grounding readme|code|both] [--style <id>] [--renderer hyperframes|huashu-keynote] [--plain] [--captions] [--out-dir <dir>]\n` +
       `  url: repo, pull request, release (or owner/repo@tag), or compare URL\n` +
       `  formats: ${Object.entries(FORMATS).map(([k, v]) => `${k} (${v.ratio})`).join(", ")}\n` +
       `  grounding: ${Object.keys(GROUNDINGS).join(", ")}\n` +
@@ -24,6 +24,7 @@ function flag(name: string): string | undefined {
   return i >= 0 ? args[i + 1] : undefined;
 }
 const opts = normalizeOptions({
+  renderer: flag("renderer"),
   format: flag("format"),
   grounding: flag("grounding"),
   style: flag("style"),
