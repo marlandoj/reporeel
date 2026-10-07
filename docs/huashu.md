@@ -1,5 +1,11 @@
 # Huashu Keynote renderer
 
+[Watch the 27.7-second narrated Hermes × Zouroboros proof](examples/hermes-keynote.mp4)
+([captions](examples/hermes-keynote.srt)). Rendered through `produce()`, with local
+Kokoro narration and no script-generation API calls.
+
+![Hermes × Zouroboros Keynote preview](examples/hermes-keynote.jpg)
+
 Choose **Huashu Keynote** in the Animation selector, pass `--renderer huashu-keynote`
 to the CLI, or send `options.renderer: "huashu-keynote"` to `POST /api/jobs`.
 The existing script review, local Kokoro narration, poster, player, MP4 and SRT

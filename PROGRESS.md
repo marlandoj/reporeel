@@ -1,18 +1,18 @@
 # Huashu Keynote integration
-Status: implementing
+Status: complete; PR ready for review
 
-- [x] Inspect RepoReel and pinned Huashu renderer contracts.
-- [x] Swarm gate: DIRECT; web-app specialist advice: shadow, no model calls.
-- [x] Connect optional renderer through UI, CLI, API options and produce().
-- [x] TypeScript, 25 Bun tests, 2 Python lifecycle tests and browser selector check pass.
-- [ ] Finish real output matrix (landscape passed; vertical/square running).
-- [ ] Render Hermes × Zouroboros proof; document setup and licenses.
-- [ ] Push branch and open review PR.
+- [x] Optional renderer connected to UI, CLI, API options and produce().
+- [x] TypeScript clean; 25 Bun tests and 2 Python lifecycle tests pass.
+- [x] Browser selector, persistence and style controls verified.
+- [x] Actual landscape, vertical and square output checked; previews retained.
+- [x] Narrated Hermes × Zouroboros proof rendered through produce(): 832 frames, 27.733 seconds, 9 captions, H.264/AAC, poster and SRT.
+- [x] Setup, source revision, attribution and measured rendering cost documented.
+- [x] Specialist advice/review routing: shadow mode; no model calls.
+- [x] Source pushed to feat/huashu-keynote-renderer; PR #8.
 
-Scope: optional renderer only; no production deployment. Upstream engine revision: 26dba25b2b495c2138848c29a2c90df356a20325.
-PR: https://github.com/marlandoj/reporeel/pull/8 (draft).
-Sample: /tmp/reporeel-hermes-demo; render process session 28286.
-Format matrix: /tmp/reporeel-huashu-smoke-gTuAzQ; session 85742.
-Next action: inspect completed frames, preserve sample/evidence, finalize PR.
-Validation-only Hyperframes node_modules cache paths were redirected to /tmp because its hardcoded home cache is outside sandbox permissions; no dependency patch ships.
-Graph secure IPC is unavailable in this sandbox. Zo operation-window check cannot write /home/.z; this is a VPS checkout.
+PR: https://github.com/marlandoj/reporeel/pull/8
+Durable sample: docs/examples/hermes-keynote.mp4 (with .srt and .jpg).
+Rollback: select Hyperframes; no service or database migration was made.
+Deployment remains a separate step; no production services changed.
+
+Validation notes: graph secure IPC was unavailable; the Zo operation-window gate could not write /home/.z in this VPS sandbox. The installed Hyperframes dependency's hardcoded TTS cache paths were redirected to /tmp for validation only; no dependency patch ships. Browser/model caches and intermediate renders stayed under /tmp.
