@@ -9,6 +9,7 @@ import { cleanupAfterRender } from "./files";
 import { styleSpec } from "./styles";
 import { plainLanguageFindings } from "./ste100";
 import type { JobOptions } from "./options";
+import { buildHuashuComposition, renderHuashu, checkHuashu } from "./huashu";
 import { log } from "./log";
 
 export type Stage = "ingesting" | "scripting" | "voicing" | "rendering";
@@ -104,16 +105,22 @@ export async function produce(jobDir: string, opts: JobOptions, hooks: ProduceHo
   const script = readScript(jobDir);
   mkdirSync(join(jobDir, "assets"), { recursive: true });
 
+  if (opts.renderer === "huashu-keynote") checkHuashu();
   hooks.onStage?.("voicing");
   hooks.checkCancel?.();
   const audio = await synthesizeScenes(script.scenes.map((s) => s.narration), join(jobDir, "assets"));
   hooks.checkCancel?.();
-  const { total, captions } = buildComposition(script, audio, jobDir, opts);
+  const { total, captions } = opts.renderer === "huashu-keynote"
+    ? buildHuashuComposition(script, audio, jobDir, opts)
+    : buildComposition(script, audio, jobDir, opts);
   log(`composition built: ${total}s, ${opts.format}, ${captions.length} captions`);
 
   hooks.onStage?.("rendering");
   hooks.checkCancel?.();
-  const mp4 = await renderComposition(jobDir, { onProgress: hooks.onProgress, register: hooks.register });
+  const mp4 = opts.renderer === "huashu-keynote"
+    ? await renderHuashu(jobDir, hooks)
+    : await renderComposition(jobDir, { onProgress: hooks.onProgress, register: hooks.register });
+  hooks.checkCancel?.();
   await makePoster(jobDir);
   const sizeBytes = cleanupAfterRender(jobDir);
   return { mp4, total, title: script.title, sizeBytes, captions: captions.length };

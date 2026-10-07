@@ -1,0 +1,42 @@
+{
+  "title": "Hermes × Zouroboros",
+  "tagline": "A persistent workshop for your VPS",
+  "scenes": [
+    {
+      "kind": "title",
+      "heading": "Your VPS workshop",
+      "lines": [
+        "Hermes × Zouroboros",
+        "A persistent workshop"
+      ],
+      "narration": "Meet Hermes and Zouroboros, a persistent workshop for your Linux VPS."
+    },
+    {
+      "kind": "list",
+      "heading": "Remember your work",
+      "lines": [
+        "Store work decisions",
+        "Search shared memory",
+        "Resume with context"
+      ],
+      "narration": "Store decisions in shared memory. Retrieve the context when you return to your work."
+    },
+    {
+      "kind": "list",
+      "heading": "Connect the workshop",
+      "lines": [
+        "Local MCP connection",
+        "Read-only factory intake"
+      ],
+      "narration": "Connect Hermes through local MCP and inspect ready factory work without reserving or dispatching tickets."
+    },
+    {
+      "kind": "outro",
+      "heading": "Prepare. Review. Run.",
+      "lines": [
+        "Provider setup required for live workers"
+      ],
+      "narration": "Prepare a campaign, review the plan, then explicitly start workers with your configured model provider."
+    }
+  ]
+}

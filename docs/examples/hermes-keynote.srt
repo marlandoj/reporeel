@@ -1,0 +1,35 @@
+1
+00:00:00,400 --> 00:00:03,770
+Meet Hermes and Zouroboros, a persistent workshop
+
+2
+00:00:03,770 --> 00:00:05,320
+for your Linux VPS.
+
+3
+00:00:06,400 --> 00:00:08,300
+Store decisions in shared memory.
+
+4
+00:00:08,300 --> 00:00:11,430
+Retrieve the context when you return to your work.
+
+5
+00:00:12,500 --> 00:00:15,860
+Connect Hermes through local MCP and inspect ready
+
+6
+00:00:15,860 --> 00:00:18,880
+factory work without reserving or dispatching
+
+7
+00:00:18,880 --> 00:00:19,660
+tickets.
+
+8
+00:00:20,730 --> 00:00:23,830
+Prepare a campaign, review the plan, then explicitly
+
+9
+00:00:23,830 --> 00:00:27,060
+start workers with your configured model provider.

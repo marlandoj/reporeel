@@ -24,6 +24,7 @@ The finished reel lives at a shareable `/v/:id` link (with its own poster and OG
 | --- | --- | --- |
 | `grounding` | `readme` \| `code` \| `both` | what the script is allowed to draw from: README and metadata, the source tree + manifest + entry file, or both (default `both`) |
 | `format` | `landscape` 16:9 1280x720 \| `vertical` 9:16 720x1280 \| `square` 1:1 1080x1080 | landscape suits YouTube, X, and LinkedIn; vertical suits Shorts, Reels, and TikTok; square suits feeds |
+| `renderer` | `hyperframes` \| `huashu-keynote` | Optional Keynote animation engine; [setup, timing and sample](docs/huashu.md). Default `hyperframes`. |
 | `style` | `studio` \| `3b1b` \| `eli5` \| `whiteboard` \| `terminal` | visual treatment. `studio` is the original dark card deck. `3b1b` renders a 3Blue1Brown-style chalkboard explainer with hand-drawn SVG mobjects. `eli5` is a warm, plain-language explainer. `whiteboard` is light marker on white. `terminal` is a monospace dev-tool look. See **Visual styles** below. |
 | `plain` | `true` \| `false` | write the script in Simplified Technical English under ASD-STE100, and check the narration mechanically against the rules. The report is attached to the job (default `false`) |
 | `captions` | `true` \| `false` | burned-in captions plus an `.srt` sidecar (default on for vertical and square) |

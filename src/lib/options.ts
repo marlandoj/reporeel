@@ -4,6 +4,7 @@ export type Grounding = "readme" | "code" | "both";
 export type Format = "landscape" | "vertical" | "square";
 
 export type JobOptions = {
+  renderer?: "hyperframes" | "huashu-keynote";
   grounding: Grounding;
   format: Format;
   style: Style;
@@ -53,11 +54,12 @@ export function normalizeOptions(raw: unknown): JobOptions {
   const captions =
     r.captions === undefined ? format !== "landscape" : r.captions === true || r.captions === "true" || r.captions === 1;
   const review = r.review === undefined ? DEFAULTS.review : r.review === true || r.review === "true" || r.review === 1;
-  return { grounding, format, style, plain, captions, review };
+  const renderer = r.renderer === "huashu-keynote" ? "huashu-keynote" : "hyperframes";
+  return { grounding, format, style: renderer === "huashu-keynote" ? "studio" : style, plain, captions, review, renderer };
 }
 
 export function variantKey(o: JobOptions): string {
-  return `${o.format}:${o.style}:${o.grounding}:${o.plain ? "ste" : "std"}:${o.captions ? "cc" : "nocc"}`;
+  return `${o.renderer === "huashu-keynote" ? "huashu-keynote:v1:" : ""}${o.format}:${o.style}:${o.grounding}:${o.plain ? "ste" : "std"}:${o.captions ? "cc" : "nocc"}`;
 }
 
 export function parseOptions(json: string | null | undefined): JobOptions {

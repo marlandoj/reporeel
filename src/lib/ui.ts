@@ -204,6 +204,10 @@ ${metaTags(ctx)}
         </div>
       </div>
       <div class="opt2">
+        <label class="opt-label" for="renderer">Animation</label>
+        <select id="renderer"><option value="hyperframes">Hyperframes styles</option><option value="huashu-keynote">Huashu Keynote</option></select>
+      </div>
+      <div class="opt2">
         <label class="opt-label" for="style">Visual style</label>
         <select id="style">
           <option value="studio" selected>Studio — neon dark, technical, the RepoReel default</option>
@@ -293,19 +297,23 @@ ${metaTags(ctx)}
   var STYLE_META = ${STYLE_JSON};
   function $(id) { return document.getElementById(id); }
   var state = { id: null, job: null, script: null, pollTimer: null, editorOpen: false, cachedNotice: false, captionsTouched: false };
-  var opts = { grounding: "both", format: "landscape", style: "studio", plain: false, captions: false, review: true };
+  var opts = { renderer: "hyperframes", grounding: "both", format: "landscape", style: "studio", plain: false, captions: false, review: true };
   var STYLE_META = ${STYLE_JSON};
   try {
     var saved = JSON.parse(localStorage.getItem("rr-opts") || "null");
+    if (saved && saved.renderer === "huashu-keynote") opts.renderer = saved.renderer;
     if (saved && saved.style) opts.style = saved.style;
     if (saved && saved.plain != null) opts.plain = !!saved.plain;
   } catch (e) {}
-  function persistOpts() { try { localStorage.setItem("rr-opts", JSON.stringify({ style: opts.style, plain: opts.plain })); } catch (e) {} }
+  function persistOpts() { try { localStorage.setItem("rr-opts", JSON.stringify({ renderer: opts.renderer, style: opts.style, plain: opts.plain })); } catch (e) {} }
   function applyStyleSelect() {
     var sel = $("style");
+    $("renderer").value = opts.renderer;
+    sel.disabled = opts.renderer === "huashu-keynote";
     sel.value = opts.style;
     $("plain").checked = opts.plain;
     var meta = STYLE_META[opts.style];
+    if (opts.renderer === "huashu-keynote") { $("style-blurb").textContent = "Animated Keynote titles and feature cards, timed to your narration."; return; }
     if (meta) $("style-blurb").textContent = meta.blurb + (opts.plain ? " Plain language is on, so the script also follows ASD-STE100." : "");
   }
 
@@ -353,6 +361,7 @@ ${metaTags(ctx)}
   });
   $("captions").addEventListener("change", function () { state.captionsTouched = true; opts.captions = this.checked; });
   $("review").addEventListener("change", function () { opts.review = this.checked; });
+  $("renderer").addEventListener("change", function () { opts.renderer = this.value; if (opts.renderer === "huashu-keynote") opts.style = "studio"; applyStyleSelect(); persistOpts(); });
   $("style").addEventListener("change", function () { opts.style = this.value; applyStyleSelect(); persistOpts(); });
   $("plain").addEventListener("change", function () { opts.plain = this.checked; applyStyleSelect(); persistOpts(); });
   applyStyleSelect();
@@ -418,7 +427,8 @@ ${metaTags(ctx)}
     if (j.format) meta.push("<b>" + FORMAT_LABEL[j.format.key] + "</b>");
     if (j.options) meta.push("grounded in " + (j.options.grounding === "both" ? "README + code" : j.options.grounding));
     var stMeta = j.options ? STYLE_META[j.options.style] : null;
-    if (stMeta) meta.push(stMeta.label.toLowerCase() + " style");
+    if (j.options && j.options.renderer === "huashu-keynote") meta.push("Huashu Keynote");
+    else if (stMeta) meta.push(stMeta.label.toLowerCase() + " style");
     if (j.options && j.options.plain) meta.push("plain language");
     if (j.captions) meta.push("captions");
     if (j.total) meta.push(Math.round(j.total) + "s");
