@@ -10,6 +10,7 @@ import type { VideoScript } from "../src/lib/script";
 const root = mkdtempSync(join(tmpdir(), "reporeel-huashu-smoke-"));
 console.log(`Artifacts: ${root}`);
 for (const format of ["landscape", "vertical", "square"] as const) {
+  if (process.argv[2] && process.argv[2] !== format) continue;
   const dir = join(root, format);
   mkdirSync(join(dir, "assets"), { recursive: true });
   const audio = join(dir, "assets/nar-0.wav");

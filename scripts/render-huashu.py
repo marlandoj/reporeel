@@ -70,7 +70,8 @@ def main():
             # Fixed filter path: job paths and user text never enter ffmpeg syntax.
             (work / 'captions.srt').write_text((job / 'out.srt').read_text())
             margin = round(plan['height'] * 0.08)
-            filters = ['-vf', f"subtitles=captions.srt:force_style='FontName=DejaVu Sans,FontSize=20,Alignment=2,MarginV={round(margin * 288 / plan['height'])},Outline=2'", '-c:v', 'libx264', '-preset', 'fast', '-crf', '20']
+            font_size = 20 if plan['width'] > plan['height'] else 9
+            filters = ['-vf', f"subtitles=captions.srt:force_style='FontName=DejaVu Sans,FontSize={font_size},Alignment=2,MarginV={round(margin * 288 / plan['height'])},Outline=2'", '-c:v', 'libx264', '-preset', 'fast', '-crf', '20']
         else:
             filters = ['-c:v', 'copy']
         run(['ffmpeg', '-y', '-v', 'error', '-f', 'concat', '-safe', '1', '-i', 'clips.txt', *filters,
@@ -82,7 +83,12 @@ def main():
         if abs(float(info['format']['duration']) - plan['total']) > 0.15:
             raise RuntimeError('Output duration differs from narration timeline')
         import shutil
-        shutil.copyfile(work / 'out.mp4', job / 'out.mp4')
+        staged = job / '.huashu-out.mp4'
+        try:
+            shutil.copyfile(work / 'out.mp4', staged)
+            staged.replace(job / 'out.mp4')
+        finally:
+            staged.unlink(missing_ok=True)
 
 
 if __name__ == '__main__':

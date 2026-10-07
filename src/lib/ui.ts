@@ -186,8 +186,6 @@ ${metaTags(ctx)}
       <input id="url" type="text" placeholder="https://github.com/owner/repo" autocomplete="off" spellcheck="false" required />
       <button class="cta" id="go" type="submit">Make the reel</button>
     </form>
-    <label for="renderer">Animation</label>
-    <select id="renderer"><option value="hyperframes">Hyperframes styles</option><option value="huashu-keynote">Huashu Keynote</option></select>
     <div class="opts" id="opts">
       <div>
         <span class="opt-label">Ground the story in</span>
@@ -204,6 +202,10 @@ ${metaTags(ctx)}
           <button type="button" data-v="vertical">9:16<small>Shorts, Reels, TikTok</small></button>
           <button type="button" data-v="square">1:1<small>Feeds</small></button>
         </div>
+      </div>
+      <div class="opt2">
+        <label class="opt-label" for="renderer">Animation</label>
+        <select id="renderer"><option value="hyperframes">Hyperframes styles</option><option value="huashu-keynote">Huashu Keynote</option></select>
       </div>
       <div class="opt2">
         <label class="opt-label" for="style">Visual style</label>
