@@ -5,3 +5,7 @@ data/
 .hyperframes/
 PROGRESS.md
 .watchdog-state.json
+
+# Python renderer test artifacts
+__pycache__/
+*.py[cod]

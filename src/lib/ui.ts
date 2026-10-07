@@ -311,6 +311,7 @@ ${metaTags(ctx)}
     sel.value = opts.style;
     $("plain").checked = opts.plain;
     var meta = STYLE_META[opts.style];
+    if (opts.renderer === "huashu-keynote") { $("style-blurb").textContent = "Animated Keynote titles and feature cards, timed to your narration."; return; }
     if (meta) $("style-blurb").textContent = meta.blurb + (opts.plain ? " Plain language is on, so the script also follows ASD-STE100." : "");
   }
 

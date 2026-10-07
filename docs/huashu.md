@@ -36,7 +36,7 @@ bun scripts/demo-huashu.ts /tmp/hermes-keynote landscape
 ## Contract and boundaries
 
 - 30 fps, landscape 1280×720, vertical 720×1280, square 1080×1080.
-- Each scene lasts at least 3.2 seconds, or narration + 0.4-second lead +
+- Each scene lasts at least 3.2 seconds (5.2 for four cards), or narration + 0.4-second lead +
   0.9-second tail, rounded up to a whole frame. Narration is never speed-adjusted.
 - Titles/outros use title cues; other scenes use feature cards. Stats preserve
   their original strings. Code is presented as text cards, without highlighting.
@@ -68,6 +68,8 @@ cards and RepoReel text; it does not reference the author's character art.
 bun run typecheck
 bun test
 python3 -m unittest discover -s tests -p 'test_*.py'
+# Optional: real three-format rendering with generated test tones
+bun scripts/smoke-huashu.ts
 ```
 
 The curated sample script comes from the Hermes × Zouroboros README's shared
