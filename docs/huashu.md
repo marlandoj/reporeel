@@ -75,3 +75,25 @@ bun scripts/smoke-huashu.ts
 The curated sample script comes from the Hermes × Zouroboros README's shared
 memory, local MCP, read-only intake and explicitly started worker capabilities.
 See `docs/examples/hermes-script.json` and `scripts/demo-huashu.ts`.
+
+### Captured format checks
+
+| Format | Resolution | Frame rate | Clip duration | Render wall time |
+| --- | --- | --- | --- | --- |
+| landscape | 1280×720 | 30/1 | 3.3 s | 41.8 s |
+| vertical | 720×1280 | 30/1 | 3.3 s | 41.7 s |
+| square | 1080×1080 | 30/1 | 3.3 s | 50.8 s |
+
+Measured in the development sandbox while other validation ran; these are
+short synthetic-audio checks, not a production capacity benchmark. Canvas
+capture is CPU-heavy; budget substantially more render time than reel duration.
+
+[Landscape frame](examples/keynote-landscape.jpg) ·
+[Vertical frame](examples/keynote-vertical.jpg) ·
+[Square frame](examples/keynote-square.jpg).
+
+Browser verification covered selection, saved settings, disabled style controls,
+and JavaScript errors. Specialist routing ran in shadow mode (zero model calls).
+For sandbox validation only, the installed Hyperframes dependency's hardcoded
+home TTS cache paths were redirected to `/tmp`; that dependency change is not
+shipped. Production uses the existing writable TTS cache.
