@@ -34,7 +34,7 @@ for sig in (signal.SIGTERM, signal.SIGINT):
 def run(args, cwd=None):
     global active
     try:
-        active = subprocess.Popen(args, cwd=cwd, start_new_session=True)
+        active = subprocess.Popen(args, cwd=cwd, start_new_session=True, stdout=sys.stderr)
         code = active.wait(timeout=600)
         if code:
             raise RuntimeError(f"{Path(args[0]).name} exited {code}")

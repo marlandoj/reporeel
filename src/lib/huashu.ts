@@ -22,7 +22,8 @@ export function planHuashu(script: VideoScript, audio: SceneAudio[], opts: JobOp
   const scenes = script.scenes.map((s, i) => {
     const a = audio[i]!;
     if (!Number.isFinite(a.seconds) || a.seconds <= 0) throw new Error("Invalid narration duration");
-    const frames = Math.ceil(Math.max(3.2, a.seconds + 1.3) * fps);
+    const cardCount = s.kind === "stats" ? s.stats?.length ?? 0 : s.lines?.length ?? 0;
+    const frames = Math.ceil(Math.max(cardCount > 3 ? 5.2 : 3.2, a.seconds + 1.3) * fps);
     const start = frame / fps;
     frame += frames;
     // One card per cue avoids silently dropping the fourth statistic. Preserve
@@ -34,7 +35,7 @@ export function planHuashu(script: VideoScript, audio: SceneAudio[], opts: JobOp
     const titleOnly = s.kind === "title" || s.kind === "outro";
     const cues: Record<string, unknown>[] = [{ at: 0, kind: "title" }];
     if (!titleOnly) cards.forEach((card, k) => cues.push({
-      at: 0.7 + k * Math.min(0.65, Math.max(0.15, (a.seconds - 0.7) / Math.max(1, cards.length))),
+      at: 0.7 + Math.floor(k / 3) * (frames / fps / Math.ceil(cards.length / 3)) + (k % 3) * 0.45,
       kind: "card", ...card, data: { icon: s.kind === "code" ? "code" : "layers" },
     }));
     return { start, audio: a.file, audioSeconds: a.seconds, frames, spec: {

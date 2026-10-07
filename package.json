@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "start": "bun src/server.ts",
-    "pipeline": "bun src/cli.ts"
+    "pipeline": "bun src/cli.ts",
+    "test": "bun test",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "gsap": "^3.15.0",
