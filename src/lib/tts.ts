@@ -1,3 +1,4 @@
+import { assertGenerationEnabled, watchGenerationProcess, ControlError } from "./controls";
 import { dirname, join, relative } from "node:path";
 import { log } from "./log";
 
@@ -29,10 +30,12 @@ async function synthesizeOne(
   voice: string,
   scene: number
 ): Promise<number> {
+  assertGenerationEnabled();
   const proc = Bun.spawn(
     [HF_BIN, "tts", narration, "-o", file, "-v", voice, "--json"],
     { env: { ...process.env }, stdout: "pipe", stderr: "pipe" }
   );
+  const unwatch = watchGenerationProcess(proc);
   let timedOut = false;
   const timer = setTimeout(() => {
     timedOut = true;
@@ -46,6 +49,8 @@ async function synthesizeOne(
     proc.exited,
   ]);
   clearTimeout(timer);
+  unwatch();
+  assertGenerationEnabled();
   if (timedOut)
     throw new Error(`tts timed out for scene ${scene} after ${TTS_TIMEOUT_MS / 1000}s`);
   if (code !== 0)
@@ -75,6 +80,7 @@ export async function synthesizeScenes(
       try {
         seconds = await synthesizeOne(narrations[i]!, file, voice, i);
       } catch (first) {
+        if (first instanceof ControlError) throw first;
         log(`tts scene ${i} failed once, retrying: ${first}`);
         await Bun.sleep(2000);
         seconds = await synthesizeOne(narrations[i]!, file, voice, i);

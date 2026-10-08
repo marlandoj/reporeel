@@ -75,7 +75,7 @@ const OWNER = "([\\w.-]+)";
 const REPO = "([\\w.-]+?)";
 const HOST = "^(?:https?:\\/\\/)?(?:www\\.)?github\\.com\\/";
 
-export function parseTarget(input: string): Target | null {
+function parseTargetUnchecked(input: string): Target | null {
   const t = input.trim();
   let m = t.match(new RegExp(`${HOST}${OWNER}\\/${REPO}\\/pull\\/(\\d+)`, "i"));
   if (m) return { kind: "pr", owner: m[1]!, repo: m[2]!, number: Number(m[3]) };
@@ -92,6 +92,12 @@ export function parseTarget(input: string): Target | null {
   m = t.match(/^([\w.-]+)\/([\w.-]+)$/);
   if (m) return { kind: "repo", owner: m[1]!, repo: m[2]! };
   return null;
+}
+
+export function parseTarget(input: string): Target | null {
+  const target = parseTargetUnchecked(input);
+  if (target && [target.owner, target.repo].some(x => x === "." || x === "..")) return null;
+  return target;
 }
 
 export function canonical(t: Target): string {
@@ -117,23 +123,9 @@ class GhError extends Error {
   }
 }
 
-let cachedToken: string | null | undefined;
-
+// Only an explicitly configured service token may be used. Never borrow gh login.
 async function ghToken(): Promise<string | null> {
-  if (cachedToken !== undefined) return cachedToken;
-  const envToken = process.env.GITHUB_TOKEN || process.env.GH_TOKEN;
-  if (envToken) {
-    cachedToken = envToken;
-    return cachedToken;
-  }
-  try {
-    const proc = Bun.spawn(["gh", "auth", "token"], { env: { ...process.env }, stdout: "pipe", stderr: "ignore" });
-    const [out, code] = await Promise.all([new Response(proc.stdout).text(), proc.exited]);
-    cachedToken = code === 0 && out.trim() ? out.trim() : null;
-  } catch {
-    cachedToken = null;
-  }
-  return cachedToken;
+  return process.env.GITHUB_TOKEN || null;
 }
 
 async function gh(path: string, raw = false): Promise<any> {
@@ -146,7 +138,10 @@ async function gh(path: string, raw = false): Promise<any> {
   if (token) headers.Authorization = `Bearer ${token}`;
   const res = await fetch(`https://api.github.com${path}`, { headers });
   if (!res.ok) throw new GhError(res.status, `GitHub API ${res.status} for ${path}`);
-  return raw ? res.text() : res.json();
+  if (raw) return res.text();
+  const value: any = await res.json();
+  if (value?.private === true) throw new GhError(404, "RepoReel only works with public repositories.");
+  return value;
 }
 
 async function tryGh(path: string, raw = false): Promise<any> {
@@ -339,6 +334,7 @@ export async function fetchStoryFacts(t: Target, grounding: Grounding = "both"):
   let info: any;
   try {
     info = await gh(base);
+    if (info.private === true) throw new GhError(404, "RepoReel only works with public repositories.");
   } catch (e) {
     throw translateError(e, "Repository");
   }

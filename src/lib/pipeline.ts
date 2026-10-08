@@ -11,6 +11,7 @@ import { plainLanguageFindings } from "./ste100";
 import type { JobOptions } from "./options";
 import { buildHuashuComposition, renderHuashu, checkHuashu } from "./huashu";
 import { log } from "./log";
+import { assertGenerationEnabled } from "./controls";
 
 export type Stage = "ingesting" | "scripting" | "voicing" | "rendering";
 
@@ -66,6 +67,7 @@ export function writeScript(jobDir: string, script: VideoScript, facts: StoryFac
 }
 
 export async function prepare(url: string, jobDir: string, opts: JobOptions, hooks: PrepareHooks = {}): Promise<PrepareResult> {
+  assertGenerationEnabled();
   const target = parseTarget(url);
   if (!target) throw new Error("Not a valid public GitHub repo, PR, release, or compare URL.");
   mkdirSync(join(jobDir, "assets"), { recursive: true });
@@ -74,6 +76,7 @@ export async function prepare(url: string, jobDir: string, opts: JobOptions, hoo
   hooks.checkCancel?.();
   log(`ingest ${canonical(target)} (${opts.grounding}, ${opts.format})`);
   const facts = await fetchStoryFacts(target, opts.grounding);
+  assertGenerationEnabled();
   writeFileSync(join(jobDir, "facts.json"), JSON.stringify(facts, null, 2));
 
   hooks.onStage?.("scripting");
@@ -86,6 +89,7 @@ export async function prepare(url: string, jobDir: string, opts: JobOptions, hoo
     const outro = script.scenes[script.scenes.length - 1];
     if (outro && outro.kind === "outro") outro.lines = [facts.url.replace(/^https?:\/\//, "")];
   }
+  assertGenerationEnabled();
   const warnings = writeScript(jobDir, script, facts, opts);
   if (warnings.length) log(`grounding warnings (${warnings.length}): ${warnings.join(" | ")}`);
 
@@ -102,6 +106,7 @@ export async function prepare(url: string, jobDir: string, opts: JobOptions, hoo
 }
 
 export async function produce(jobDir: string, opts: JobOptions, hooks: ProduceHooks = {}): Promise<ProduceResult> {
+  assertGenerationEnabled();
   const script = readScript(jobDir);
   mkdirSync(join(jobDir, "assets"), { recursive: true });
 

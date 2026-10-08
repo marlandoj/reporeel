@@ -1,3 +1,4 @@
+import { assertGenerationEnabled, watchGenerationProcess, ControlError } from "./controls";
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import type { VideoScript } from "./script";
@@ -59,8 +60,10 @@ export function buildHuashuComposition(script: VideoScript, audio: SceneAudio[],
 export async function renderHuashu(jobDir: string, hooks: RenderHooks & { checkCancel?: () => void } = {}): Promise<string> {
   const root = checkHuashu();
   hooks.checkCancel?.();
+  assertGenerationEnabled();
   const proc = Bun.spawn([process.env.HUASHU_PYTHON || "python3", join(import.meta.dir, "../../scripts/render-huashu.py"), resolve(jobDir), root], { stdout: "pipe", stderr: "pipe" });
   hooks.register?.(proc);
+  const unwatch = watchGenerationProcess(proc);
   let timedOut = false;
   const timer = setTimeout(() => { timedOut = true; proc.kill(); }, 12 * 60 * 1000);
   const read = async () => {
@@ -76,11 +79,12 @@ export async function renderHuashu(jobDir: string, hooks: RenderHooks & { checkC
   };
   try {
     const [, error, code] = await Promise.all([read(), new Response(proc.stderr).text(), proc.exited]);
+    assertGenerationEnabled();
     hooks.checkCancel?.();
     if (timedOut) throw new Error("Huashu render timed out");
     if (code !== 0) throw new Error(`Huashu render failed (exit ${code}): ${error.slice(-800)}`);
     const out = join(jobDir, "out.mp4");
     if (!(await Bun.file(out).exists()) || Bun.file(out).size < 1000) throw new Error("Huashu produced no output");
     return out;
-  } finally { clearTimeout(timer); }
+  } finally { clearTimeout(timer); unwatch(); }
 }
