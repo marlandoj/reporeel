@@ -2,6 +2,7 @@ import type { StoryFacts } from "./github";
 import { FORMATS, type JobOptions } from "./options";
 import { styleSpec } from "./styles";
 import { log } from "./log";
+import { openRouterJson, ControlError } from "./controls";
 import { steScriptRules } from "./ste100";
 
 export type SceneKind = "title" | "stats" | "text" | "list" | "code" | "analogy" | "equation" | "outro";
@@ -171,24 +172,12 @@ export function validateScript(obj: any): VideoScript {
 }
 
 async function chat(model: string, system: string, user: string, maxTokens = 2000): Promise<any> {
-  const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model,
-      messages: [
-        { role: "system", content: system },
-        { role: "user", content: user },
-      ],
-      temperature: 0.6,
-      max_tokens: maxTokens,
-    }),
+  const data = await openRouterJson({
+    model,
+    messages: [{ role: "system", content: system }, { role: "user", content: user }],
+    temperature: 0.6,
+    max_tokens: maxTokens,
   });
-  if (!res.ok) throw new Error(`OpenRouter ${res.status} for ${model}`);
-  const data: any = await res.json();
   const content = data.choices?.[0]?.message?.content;
   if (!content) throw new Error(`empty completion from ${model}`);
   return extractJson(content);
@@ -201,6 +190,7 @@ async function withFallback<T>(label: string, fn: (model: string) => Promise<T>)
       try {
         return await fn(model);
       } catch (e) {
+        if (e instanceof ControlError) throw e;
         lastErr = e;
         log(`${label} failed (${model}, attempt ${attempt + 1}): ${e}`);
       }

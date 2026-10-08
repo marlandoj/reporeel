@@ -19,40 +19,18 @@ import { scriptToText } from "./lib/script";
 import { readScript } from "./lib/pipeline";
 import { log } from "./lib/log";
 
-const app = new Hono();
+import { ControlError, visitorIp, reserveSte, assertGenerationEnabled } from "./lib/controls";
 
-const STE_MIN_INTERVAL_MS = 12_000;
+export const app = new Hono<{ Bindings: { peerIp?: string } }>();
+
 const STE_MAX_CHARS = 12_000;
-const steLastAt = new Map<string, number>();
-const steCounts = new Map<string, number>();
-
-function tooManySte(limit: number): boolean {
-  const d = new Date();
-  const day = `${d.getUTCFullYear()}-${d.getUTCMonth() + 1}-${d.getUTCDate()}`;
-  const key = `${day}:${limit}`;
-  const n = steCounts.get(key) ?? 0;
-  steCounts.set(key, n + 1);
-  if (steCounts.size > 400) for (const k of [...steCounts.keys()].slice(0, 200)) steCounts.delete(k);
-  return n >= limit;
-}
-
-function steRateLimited(ip: string): boolean {
-  const now = Date.now();
-  const last = steLastAt.get(ip) ?? 0;
-  if (now - last < STE_MIN_INTERVAL_MS) return true;
-  steLastAt.set(ip, now);
-  if (steLastAt.size > 5000) steLastAt.clear();
-  return false;
-}
 
 function clientIp(c: Context): string {
-  const fwd = c.req.header("x-forwarded-for");
-  if (fwd) return fwd.split(",")[0]!.trim();
-  return "local";
+  return visitorIp(c.env?.peerIp, c.req.raw.headers);
 }
 
 function errorResponse(c: Context, e: unknown) {
-  if (e instanceof SubmitError) return c.json({ error: e.message }, e.status as 400);
+  if (e instanceof SubmitError || e instanceof ControlError) return c.json({ error: e.message }, e.status as 400);
   const msg = e instanceof Error ? e.message : String(e);
   log(`request failed: ${msg}`);
   return c.json({ error: msg.slice(0, 300) }, 500);
@@ -147,7 +125,6 @@ app.post("/api/jobs", async (c) => {
   }
   const url = String(body?.url ?? "").slice(0, 300);
   if (!url) return c.json({ error: "Paste a GitHub URL first." }, 400);
-  if (process.env.RENDER_DISABLED) return c.json({ error: "Rendering is paused right now. Try again later." }, 503);
   try {
     const result = submitJob(url, clientIp(c), body?.options, body?.force === true);
     return c.json(result);
@@ -211,7 +188,6 @@ app.post("/api/jobs/:id/render", (c) => {
   const job = getJob(c.req.param("id"));
   if (!job) return c.json({ error: "Job not found." }, 404);
   if (!ownerFromRequest(c, job)) return c.json({ error: "Only the person who started this reel can render it." }, 403);
-  if (process.env.RENDER_DISABLED) return c.json({ error: "Rendering is paused right now. Try again later." }, 503);
   try {
     approveJob(job);
     return c.json({ ok: true, status: "queued" });
@@ -379,11 +355,8 @@ app.post("/api/ste100/rewrite", async (c) => {
   const text = String(body?.text ?? "").slice(0, STE_MAX_CHARS);
   if (!text.trim()) return c.json({ error: "Paste some text to rewrite." }, 400);
   if (!process.env.OPENROUTER_API_KEY) return c.json({ error: "Rewriting is not configured on this server right now. Use Check only." }, 503);
-  if (tooManySte(Number(process.env.REPOREEL_STE_DAILY ?? 80))) {
-    return c.json({ error: "Rewrite budget for today is used up. Check mode still works." }, 429);
-  }
-  if (steRateLimited(clientIp(c))) return c.json({ error: "Slow down. One rewrite every 12 seconds." }, 429);
   try {
+    reserveSte(clientIp(c));
     const revised = await rewritePlain(text, String(body?.strength ?? "soft"), String(body?.tone ?? "keep"));
     return c.json({ ...lintText(revised), output: revised });
   } catch (e) {
@@ -403,6 +376,8 @@ app.get("/api/ste100/scripts", (c) => {
 app.get("/api/ste100/scripts/:id", (c) => {
   const id = c.req.param("id");
   if (!/^[\w-]{4,40}$/.test(id)) return c.json({ error: "Bad id." }, 400);
+  const job = getJob(id);
+  if (!job || (job.status !== "done" && !ownerFromRequest(c, job))) return c.json({ error: "No public script found for that reel." }, 404);
   const path = join(jobDirFor(id), "script.json");
   if (!existsSync(path)) return c.json({ error: "No script found for that reel." }, 404);
   try {
@@ -417,8 +392,17 @@ app.get("/healthz", (c) => {
   return c.json({ ok: true, queue: queueDepth(), working: currentJobId(), reels: storage.jobs, storageMb: Math.round(storage.bytes / 1e5) / 10 });
 });
 
-startWorker();
-startRetention();
+if (import.meta.main) {
+  startWorker();
+  startRetention();
+}
 const port = Number(process.env.PORT ?? 3901);
 log(`reporeel listening on :${port} (data: ${DATA_DIR})`);
-export default { port, fetch: app.fetch, idleTimeout: 60 };
+export default {
+  port,
+  hostname: process.env.REPOREEL_BIND ?? "127.0.0.1",
+  fetch(req: Request, server: Bun.Server<undefined>) {
+    return app.fetch(req, { peerIp: server.requestIP(req)?.address });
+  },
+  idleTimeout: 60,
+};

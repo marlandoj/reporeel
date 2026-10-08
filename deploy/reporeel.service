@@ -1,0 +1,32 @@
+[Unit]
+Description=RepoReel isolated video service
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=reporeel
+Group=reporeel
+WorkingDirectory=/opt/reporeel/code
+EnvironmentFile=/etc/reporeel/reporeel.env
+ExecStart=/opt/reporeel/bin/bun src/server.ts
+Restart=on-failure
+RestartSec=5
+KillMode=control-group
+TimeoutStopSec=15
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/reporeel /var/cache/reporeel
+StateDirectory=reporeel
+CacheDirectory=reporeel
+Nice=10
+CPUQuota=100%
+MemoryHigh=1536M
+MemoryMax=2G
+TasksMax=256
+
+[Install]
+WantedBy=multi-user.target

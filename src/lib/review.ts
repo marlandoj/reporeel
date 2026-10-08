@@ -1,9 +1,11 @@
-import { getJob, updateJob, jobDirFor, type Job } from "./db";
+import { db, getJob, updateJob, jobDirFor, type Job } from "./db";
 import { readFacts, readScript, writeScript } from "./pipeline";
 import { regenerateScene, validateScript, type VideoScript } from "./script";
 import { jobOptions, SubmitError } from "./queue";
 
-const MAX_REWRITES = Number(process.env.REPOREEL_MAX_REWRITES ?? 12);
+import { assertGenerationEnabled, assertReviewIdle, withReviewLock, limit } from "./controls";
+
+const MAX_REWRITES = limit("REPOREEL_MAX_REWRITES", 12);
 
 export type ReviewState = { script: VideoScript; warnings: string[]; rewritesLeft: number };
 
@@ -23,6 +25,8 @@ export function reviewState(job: Job): ReviewState {
 }
 
 export function saveScript(job: Job, raw: unknown): ReviewState {
+  assertReviewIdle(job.id);
+  job = getJob(job.id) ?? job;
   if (job.status !== "review") throw new SubmitError(409, "This reel is not waiting for review.");
   const current = readScript(jobDirFor(job.id));
   const next = validateScript(raw);
@@ -36,18 +40,26 @@ export function saveScript(job: Job, raw: unknown): ReviewState {
 }
 
 export async function rewriteScene(job: Job, index: number, hint: string): Promise<ReviewState> {
-  if (job.status !== "review") throw new SubmitError(409, "This reel is not waiting for review.");
-  if (job.rewrites >= MAX_REWRITES) throw new SubmitError(429, `Rewrite limit reached (${MAX_REWRITES} per reel).`);
-  const dir = jobDirFor(job.id);
-  const script = readScript(dir);
-  if (!Number.isInteger(index) || index < 0 || index >= script.scenes.length) throw new SubmitError(400, "No such scene.");
-  const facts = readFacts(dir);
-  updateJob(job.id, { rewrites: job.rewrites + 1 });
-  const scene = await regenerateScene(facts, jobOptions(job), script, index, hint);
-  if (scene.kind === "outro") scene.lines = script.scenes[index]!.lines;
-  script.scenes[index] = scene;
-  const warnings = writeScript(dir, script, facts, jobOptions(job));
-  updateJob(job.id, { warnings: JSON.stringify(warnings), stage_started_at: Date.now() });
-  const fresh = getJob(job.id)!;
-  return { script, warnings, rewritesLeft: Math.max(0, MAX_REWRITES - fresh.rewrites) };
+  assertGenerationEnabled();
+  return withReviewLock(job.id, async () => {
+    job = getJob(job.id) ?? job;
+    if (job.status !== "review") throw new SubmitError(409, "This reel is not waiting for review.");
+    if (job.rewrites >= MAX_REWRITES) throw new SubmitError(429, `Rewrite limit reached (${MAX_REWRITES} per reel).`);
+    const dir = jobDirFor(job.id);
+    const script = readScript(dir);
+    if (!Number.isInteger(index) || index < 0 || index >= script.scenes.length) throw new SubmitError(400, "No such scene.");
+    const facts = readFacts(dir);
+    const reserved = db.query("UPDATE jobs SET rewrites = rewrites + 1 WHERE id = ? AND status = 'review' AND rewrites < ? RETURNING rewrites").get(job.id, MAX_REWRITES);
+    if (!reserved) throw new SubmitError(429, "Rewrite limit reached.");
+
+    const scene = await regenerateScene(facts, jobOptions(job), script, index, hint);
+    assertGenerationEnabled();
+    if (getJob(job.id)?.status !== "review") throw new SubmitError(409, "This reel is no longer waiting for review.");
+    if (scene.kind === "outro") scene.lines = script.scenes[index]!.lines;
+    script.scenes[index] = scene;
+    const warnings = writeScript(dir, script, facts, jobOptions(job));
+    updateJob(job.id, { warnings: JSON.stringify(warnings), stage_started_at: Date.now() });
+    const fresh = getJob(job.id)!;
+    return { script, warnings, rewritesLeft: Math.max(0, MAX_REWRITES - fresh.rewrites) };
+  });
 }

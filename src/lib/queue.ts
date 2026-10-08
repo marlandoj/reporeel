@@ -4,9 +4,11 @@ import { normalizeOptions, parseOptions, variantKey, type JobOptions } from "./o
 import { prepare, produce, CancelledError, type Stage } from "./pipeline";
 import { removeDir } from "./files";
 import { log } from "./log";
+import { assertGenerationEnabled, generationPaused, assertReviewIdle, limit } from "./controls";
 
-const RATE_LIMIT_PER_HOUR = Number(process.env.REPOREEL_RATE_LIMIT ?? 3);
-const MAX_QUEUE_DEPTH = Number(process.env.REPOREEL_MAX_QUEUE ?? 6);
+const RATE_LIMIT_PER_HOUR = limit("REPOREEL_RATE_LIMIT", 3);
+const MAX_QUEUE_DEPTH = limit("REPOREEL_MAX_QUEUE", 6);
+const PENDING_SQL = [...ACTIVE_STATUSES, "review"].map((s) => `'${s}'`).join(",");
 const ACTIVE_SQL = ACTIVE_STATUSES.map((s) => `'${s}'`).join(",");
 
 export class SubmitError extends Error {
@@ -20,6 +22,7 @@ export class SubmitError extends Error {
 export type SubmitResult = { id: string; cached: boolean; attached: boolean; ownerToken: string | null };
 
 export function submitJob(url: string, ip: string, rawOptions: unknown, force = false): SubmitResult {
+  assertGenerationEnabled();
   const target = parseTarget(url);
   if (!target) throw new SubmitError(400, "That does not look like a public GitHub repo, PR, release, or compare URL.");
   const opts = normalizeOptions(rawOptions);
@@ -32,13 +35,13 @@ export function submitJob(url: string, ip: string, rawOptions: unknown, force = 
     if (done) return { id: done.id, cached: true, attached: false, ownerToken: null };
   }
   const active = db
-    .query(`SELECT id FROM jobs WHERE canonical = ? AND variant = ? AND status IN (${ACTIVE_SQL}) LIMIT 1`)
+    .query(`SELECT id FROM jobs WHERE canonical = ? AND variant = ? AND status IN (${PENDING_SQL}) LIMIT 1`)
     .get(canon, variant) as { id: string } | null;
   if (active) return { id: active.id, cached: false, attached: true, ownerToken: null };
   const hourAgo = Date.now() - 3600_000;
   const byIp = db.query("SELECT COUNT(*) as n FROM jobs WHERE ip = ? AND created_at > ?").get(ip, hourAgo) as { n: number };
   if (byIp.n >= RATE_LIMIT_PER_HOUR) throw new SubmitError(429, `Rate limit: ${RATE_LIMIT_PER_HOUR} new videos per hour per visitor. Try again soon.`);
-  const depth = db.query(`SELECT COUNT(*) as n FROM jobs WHERE status IN (${ACTIVE_SQL})`).get() as { n: number };
+  const depth = db.query(`SELECT COUNT(*) as n FROM jobs WHERE status IN (${PENDING_SQL})`).get() as { n: number };
   if (depth.n >= MAX_QUEUE_DEPTH) throw new SubmitError(429, "The queue is full right now. Try again in a few minutes.");
   const id = newId();
   const ownerToken = newOwnerToken();
@@ -75,6 +78,10 @@ export function jobOptions(job: Job): JobOptions {
 }
 
 export function approveJob(job: Job): void {
+  assertGenerationEnabled();
+  assertReviewIdle(job.id);
+  job = getJob(job.id) ?? job;
+  if (queueDepth() >= MAX_QUEUE_DEPTH) throw new SubmitError(429, "The queue is full right now. Try again in a few minutes.");
   if (job.status !== "review") throw new SubmitError(409, "This reel is not waiting for review.");
   updateJob(job.id, { status: "queued", phase: "render", cancel_requested: 0, stage_started_at: Date.now() });
 }
@@ -126,7 +133,8 @@ function cancelRequested(id: string): boolean {
   return Boolean(row?.cancel_requested);
 }
 
-async function workOne(): Promise<boolean> {
+export async function workOne(): Promise<boolean> {
+  if (generationPaused()) return false;
   const next = db.query("SELECT id, url, options, phase FROM jobs WHERE status = 'queued' ORDER BY created_at ASC LIMIT 1").get() as
     | { id: string; url: string; options: string | null; phase: string | null }
     | null;
@@ -136,6 +144,7 @@ async function workOne(): Promise<boolean> {
   const jobDir = jobDirFor(id);
   current = { id, proc: null };
   const checkCancel = () => {
+    assertGenerationEnabled();
     if (cancelRequested(id)) throw new CancelledError();
   };
   try {

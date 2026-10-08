@@ -75,6 +75,7 @@ Every reel records the source's `pushed_at` (and release tag) at ingest time. `P
 - No sign-up, no login, no email — not for making videos, not for watching them, not for downloading them.
 - No cookies, no tracking, no user identity of any kind. The server keeps a job queue and nothing about *you*.
 - Abuse control without identity: per-IP rate limiting (3 new videos/hour), a bounded queue, and URL-plus-options caching so popular repos render once per format.
+- Rate-limit bookkeeping persists in SQLite; limits survive restarts.
 - The only per-person state is an owner token, handed back when a reel is started, that gates script editing and cancellation for that one reel. It is never stored server-side beyond the job row.
 
 ## Why this exists (a Hackyard story)
@@ -87,19 +88,28 @@ Requirements: [Bun](https://bun.sh), ffmpeg, and Chrome/Chromium (HyperFrames do
 
 ```bash
 bun install
-OPENROUTER_API_KEY=your_key_here bun src/server.ts
+OPENROUTER_API_KEY=your_key_here REPOREEL_AI_DAILY=20 bun src/server.ts
 ```
+
+For an existing VPS, see [deployment preparation](deploy/README.md). Paid AI calls
+are disabled unless REPOREEL_AI_DAILY is explicitly positive; set an approved
+provider key limit as well. The server binds loopback by default.
 
 Optional environment:
 
 | Variable | Purpose | Default |
 | --- | --- | --- |
 | `OPENROUTER_API_KEY` | LLM script generation (required) | — |
-| `GITHUB_TOKEN` | higher GitHub API limits (falls back to `gh auth token`, then anonymous) | — |
+| `GITHUB_TOKEN` | higher GitHub API limits (explicit service token; otherwise anonymous) | — |
 | `PORT` | listen port | 3901 |
+| `REPOREEL_BIND` | listen address | `127.0.0.1` |
+| `REPOREEL_TRUSTED_PROXIES` | exact socket peer IPs allowed to supply overwritten X-Real-IP | none |
+| `REPOREEL_AI_DAILY` | durable maximum OpenRouter attempts per UTC day across all features | 0 (off) |
+| `REPOREEL_AI_CONCURRENCY` | simultaneous OpenRouter calls | 2 |
+| `REPOREEL_STE_DAILY` | durable STE rewrite allowance per UTC day | 80 |
 | `REPOREEL_RATE_LIMIT` | new videos per IP per hour | 3 |
 | `REPOREEL_MAX_QUEUE` | max active jobs | 6 |
-| `RENDER_DISABLED` | kill switch: reject new jobs | off |
+| `RENDER_DISABLED` | any nonempty value pauses generation, queue processing and AI attempts; a `STOP_GENERATION` file in the data directory also pauses at runtime | unset |
 | `REPOREEL_DATA_DIR` | where jobs, media, and the SQLite queue live | `./data` |
 | `REPOREEL_RETENTION_DAYS` | delete finished reels older than this on the hourly sweep | 30 |
 
