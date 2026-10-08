@@ -139,7 +139,7 @@ async function gh(path: string, raw = false): Promise<any> {
   const res = await fetch(`https://api.github.com${path}`, { headers });
   if (!res.ok) throw new GhError(res.status, `GitHub API ${res.status} for ${path}`);
   if (raw) return res.text();
-  const value = await res.json();
+  const value: any = await res.json();
   if (value?.private === true) throw new GhError(404, "RepoReel only works with public repositories.");
   return value;
 }
