@@ -108,6 +108,7 @@ assert.equal((await request("/api/ste100/scripts/" + reel.id, "GET")).status, 20
 updateJob(reel.id, { status: "review" });
 
 for (const useFile of [false, true]) {
+  updateJob(reel.id, { status: "queued" });
   if (useFile) writeFileSync(join(DATA_DIR, "STOP_GENERATION"), "");
   else process.env.RENDER_DISABLED = "1";
   const paths: [string, any, string][] = [
@@ -119,6 +120,7 @@ for (const useFile of [false, true]) {
   ];
   for (const [path, body, token] of paths) assert.equal((await request(path, "POST", body, token)).status, 503, path);
   assert.equal(await workOne(), false, "paused worker must not dequeue recovered jobs");
+  assert.equal(getJob(reel.id)!.status, "queued");
   await assert.rejects(() => openRouterJson({}), e => e instanceof ControlError && e.status === 503);
   assert.equal((await request("/api/ste100/lint", "POST", { text: "The tool reads a file." })).status, 200);
   assert.equal((await request("/healthz", "GET")).status, 200);
@@ -126,6 +128,8 @@ for (const useFile of [false, true]) {
   if (useFile) unlinkSync(join(DATA_DIR, "STOP_GENERATION"));
   else process.env.RENDER_DISABLED = "";
 }
+
+updateJob(reel.id, { status: "review" });
 
 // Rate limiting uses the socket peer, even if every request forges another XFF.
 db.run("UPDATE jobs SET status='done'");
