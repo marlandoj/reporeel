@@ -1,10 +1,10 @@
-import { db, ACTIVE_STATUSES, getJob, updateJob, newId, newOwnerToken, hashToken, jobDirFor, type Job } from "./db";
+import { db, recoverInterruptedJobs, ACTIVE_STATUSES, getJob, updateJob, newId, newOwnerToken, hashToken, jobDirFor, type Job } from "./db";
 import { parseTarget, canonical, fetchFreshness } from "./github";
 import { normalizeOptions, parseOptions, variantKey, type JobOptions } from "./options";
 import { prepare, produce, CancelledError, type Stage } from "./pipeline";
 import { removeDir } from "./files";
 import { log } from "./log";
-import { assertGenerationEnabled, generationPaused, assertReviewIdle, limit } from "./controls";
+import { assertGenerationEnabled, generationPaused, assertReviewIdle, limit, ControlError } from "./controls";
 
 const RATE_LIMIT_PER_HOUR = limit("REPOREEL_RATE_LIMIT", 3);
 const MAX_QUEUE_DEPTH = limit("REPOREEL_MAX_QUEUE", 6);
@@ -135,13 +135,14 @@ function cancelRequested(id: string): boolean {
 
 export async function workOne(): Promise<boolean> {
   if (generationPaused()) return false;
-  const next = db.query("SELECT id, url, options, phase FROM jobs WHERE status = 'queued' ORDER BY created_at ASC LIMIT 1").get() as
+  const next = db.query("SELECT id, url, options, phase FROM jobs WHERE status = 'queued' AND COALESCE(retry_after, 0) <= ? ORDER BY created_at ASC LIMIT 1").get(Date.now()) as
     | { id: string; url: string; options: string | null; phase: string | null }
     | null;
   if (!next) return false;
   const id = next.id;
   const opts = parseOptions(next.options);
   const jobDir = jobDirFor(id);
+  let resumePhase = next.phase;
   current = { id, proc: null };
   const checkCancel = () => {
     assertGenerationEnabled();
@@ -158,11 +159,12 @@ export async function workOne(): Promise<boolean> {
         kind: prep.target.kind,
       });
       if (opts.review) {
-        checkCancel();
+        if (cancelRequested(id)) throw new CancelledError();
         updateJob(id, { status: "review", stage_started_at: Date.now() });
         log(`job ${id} waiting for review: ${prep.canonical}`);
         return true;
       }
+      resumePhase = "render";
     }
     const out = await produce(jobDir, opts, {
       onStage: (s) => setStage(id, s),
@@ -188,6 +190,14 @@ export async function workOne(): Promise<boolean> {
       removeDir(jobDir);
       updateJob(id, { status: "cancelled", phase: null, finished_at: Date.now(), size_bytes: 0, progress_done: null, progress_total: null });
       log(`job ${id} cancelled`);
+    } else if (e instanceof ControlError && (e.status === 429 || e.status === 503)) {
+      // Admission controls are temporary: keep the job, but do not spin or spend.
+      updateJob(id, {
+        status: "queued", phase: resumePhase, error: null, finished_at: null,
+        retry_after: Date.now() + Math.max(1000, Math.min(86400_000, e.retryAfterMs)),
+        progress_done: null, progress_total: null,
+      });
+      log(`job ${id} deferred by generation controls: ${e.message}`);
     } else {
       updateJob(id, { status: "error", phase: null, error: String(e?.message ?? e).slice(0, 400), finished_at: Date.now(), progress_done: null, progress_total: null });
       log(`job ${id} failed: ${e}`);
@@ -200,6 +210,7 @@ export async function workOne(): Promise<boolean> {
 
 export function startWorker(): void {
   if (workerRunning) return;
+  recoverInterruptedJobs();
   workerRunning = true;
   (async () => {
     for (;;) {

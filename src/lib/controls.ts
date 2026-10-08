@@ -4,7 +4,7 @@ import { isIP } from "node:net";
 import { DATA_DIR, db } from "./db";
 
 export class ControlError extends Error {
-  constructor(public status: number, message: string) { super(message); }
+  constructor(public status: number, message: string, public retryAfterMs = 5_000) { super(message); }
 }
 
 export function limit(name: string, fallback: number): number {
@@ -82,7 +82,12 @@ export async function openRouterJson(body: Record<string, unknown>): Promise<any
   const key = process.env.OPENROUTER_API_KEY;
   if (!key) throw new ControlError(503, "AI generation is not configured on this server.");
   if (activeAi >= limit("REPOREEL_AI_CONCURRENCY", 2)) throw new ControlError(429, "AI generation is busy. Try again soon.");
-  if (!reserveDaily("ai", limit("REPOREEL_AI_DAILY", 0))) throw new ControlError(429, "AI request allowance for today is used up.");
+  const maximum = limit("REPOREEL_AI_DAILY", 0);
+  if (maximum === 0) throw new ControlError(503, "AI generation is disabled until a daily allowance is configured.");
+  if (!reserveDaily("ai", maximum)) {
+    const untilTomorrow = (Math.floor(Date.now() / 86400_000) + 1) * 86400_000 - Date.now();
+    throw new ControlError(429, "AI request allowance for today is used up.", untilTomorrow);
+  }
   activeAi++;
   const abort = new AbortController();
   const timer = setTimeout(() => abort.abort(), 90_000);

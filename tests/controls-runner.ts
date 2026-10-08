@@ -8,12 +8,31 @@ import {
   ControlError, watchGenerationProcess,
 } from "../src/lib/controls";
 import { db, DATA_DIR, jobDirFor, getJob, updateJob } from "../src/lib/db";
-import { submitJob, approveJob, workOne } from "../src/lib/queue";
+import { submitJob, approveJob, workOne, startWorker } from "../src/lib/queue";
 import { rewriteScene, saveScript } from "../src/lib/review";
 import { generateScript } from "../src/lib/script";
 import { rewritePlain } from "../src/lib/steapi";
 import { parseTarget, fetchStoryFacts } from "../src/lib/github";
 import { normalizeOptions } from "../src/lib/options";
+
+if (process.argv.includes("--import-only") || process.argv.includes("--worker-recovery")) {
+  const recovering = process.argv.includes("--worker-recovery");
+  if (recovering) {
+    process.env.RENDER_DISABLED = "1";
+    startWorker();
+  }
+  for (const status of ["ingesting", "scripting", "voicing", "rendering"]) {
+    const job = getJob("import-" + status)!;
+    assert.equal(job.status, recovering ? "queued" : status, "module imports must not recover active jobs");
+    if (!recovering) {
+      assert.equal(job.options, null, "module imports must not backfill active job rows");
+      assert.equal(job.variant, null);
+    }
+    if (recovering && ["voicing", "rendering"].includes(status)) assert.equal(job.phase, "render");
+  }
+  console.log(recovering ? "explicit worker recovery passed" : "CLI dependency import safety passed");
+  process.exit(0);
+}
 
 if (process.argv.includes("--restart")) {
   assert.equal(reserveDaily("restart", 1), false);
@@ -81,7 +100,12 @@ let malformed = false;
 let privateRepo = false;
 globalThis.fetch = (async (input: any, init?: RequestInit) => {
   const url = String(input);
-  if (url.startsWith("https://api.github.com")) return Response.json({ private: privateRepo, pushed_at: "2026-01-01" });
+  if (url.startsWith("https://api.github.com")) {
+    if (url.includes("/languages")) return Response.json({ TypeScript: 1 });
+    if (url.includes("/readme")) return new Response(facts.readmeExcerpt);
+    if (/\/(commits|contributors|releases)(?:[?]|$)/.test(url)) return Response.json([]);
+    return Response.json({ private: privateRepo, name: "repo", description: "A test", language: "TypeScript", created_at: "2020-01-01", pushed_at: "2026-01-01", license: { spdx_id: "MIT" } });
+  }
   assert.equal(url, "https://openrouter.ai/api/v1/chat/completions");
   calls++;
   const body = JSON.parse(String(init?.body));
@@ -169,7 +193,7 @@ await assert.rejects(() => generateScript(facts, normalizeOptions({})), e => (e 
 assert.equal(calls - before, 1);
 malformed = false;
 delete process.env.REPOREEL_AI_DAILY;
-await assert.rejects(() => openRouterJson({}), e => (e as any).status === 429);
+await assert.rejects(() => openRouterJson({}), e => (e as any).status === 503);
 assert.equal(calls - before, 1, "unset allowance fails closed");
 
 // A provider fetch already in flight is aborted by the live stop file.
@@ -190,6 +214,50 @@ await Bun.sleep(350);
 unwatch();
 assert.equal(killed, true);
 unlinkSync(join(DATA_DIR, "STOP_GENERATION"));
+
+// A competing STE request must defer a queued video without consuming its allowance.
+db.run("UPDATE jobs SET status='done'");
+db.run("DELETE FROM usage_limits WHERE scope='ai'");
+process.env.REPOREEL_AI_CONCURRENCY = "1";
+process.env.REPOREEL_AI_DAILY = "100";
+const busyReel = submitJob("https://github.com/owner/busy", "busy-peer", { grounding: "readme" }, true);
+hold = true;
+const competingSte = rewritePlain("Hold the only AI slot.");
+const busyBefore = calls;
+assert.equal(await workOne(), true);
+assert.equal(getJob(busyReel.id)!.status, "queued");
+assert.equal(getJob(busyReel.id)!.error, null);
+assert.ok(getJob(busyReel.id)!.retry_after! > Date.now());
+assert.equal(calls, busyBefore);
+assert.equal((db.query("SELECT used FROM usage_limits WHERE scope='ai'").get() as { used: number }).used, 1);
+assert.equal(await workOne(), false, "backoff must prevent immediate reprocessing");
+pending!(Response.json({ choices: [{ message: { content: "Rewritten text." } }] }));
+await competingSte;
+hold = false;
+updateJob(busyReel.id, { retry_after: Date.now() - 1 });
+assert.equal(await workOne(), true);
+assert.equal(getJob(busyReel.id)!.status, "review");
+assert.equal(calls, busyBefore + 1, "the video gets exactly one provider call after the slot opens");
+
+// An exhausted allowance retains the queue until the next UTC day.
+process.env.REPOREEL_AI_DAILY = "2";
+const dailyReel = submitJob("https://github.com/owner/daily", "daily-peer", { grounding: "readme" }, true);
+const dailyBefore = calls;
+assert.equal(await workOne(), true);
+assert.equal(getJob(dailyReel.id)!.status, "queued");
+assert.equal(getJob(dailyReel.id)!.error, null);
+const tomorrow = (Math.floor(Date.now() / 86400_000) + 1) * 86400_000;
+assert.equal(getJob(dailyReel.id)!.retry_after, tomorrow);
+assert.equal(calls, dailyBefore);
+assert.equal(await workOne(), false);
+const realNow = Date.now;
+Date.now = () => tomorrow + 1000;
+try {
+  assert.equal(await workOne(), true);
+  assert.equal(getJob(dailyReel.id)!.status, "review");
+  assert.equal(calls, dailyBefore + 1);
+} finally { Date.now = realNow; }
+process.env.REPOREEL_AI_DAILY = "100";
 
 // Failed STE models must actually advance through the fallback model list.
 const original = globalThis.fetch;
@@ -215,4 +283,16 @@ await assert.rejects(() => fetchStoryFacts({ kind: "repo", owner: "owner", repo:
 const secondConnection = new Database(join(DATA_DIR, "reporeel.db"));
 assert.equal((secondConnection.query("SELECT used FROM usage_limits WHERE scope='ste'").get() as { used: number }).used, 2);
 secondConnection.close();
+// The CLI/build/render import graph must leave the live worker's status rows alone.
+for (const status of ["ingesting", "scripting", "voicing", "rendering"]) {
+  db.run("INSERT INTO jobs(id,url,canonical,status,created_at) VALUES(?,?,?,?,?)",
+    ["import-" + status, "https://github.com/owner/repo", "owner/repo", status, Date.now()]);
+}
+for (const mode of ["--import-only", "--worker-recovery"]) {
+  const child = Bun.spawn([process.execPath, import.meta.path, mode], {
+    env: { ...process.env }, stdout: "pipe", stderr: "pipe",
+  });
+  const [out, err, code] = await Promise.all([new Response(child.stdout).text(), new Response(child.stderr).text(), child.exited]);
+  assert.equal(code, 0, out + err);
+}
 console.log("public launch controls passed");
