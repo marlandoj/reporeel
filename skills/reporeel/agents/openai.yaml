@@ -1,0 +1,4 @@
+interface:
+  display_name: "RepoReel"
+  short_description: "Create repo movies and playable README media"
+  default_prompt: "Use $reporeel to create a narrated movie for this GitHub repository and prepare its playable README section."
