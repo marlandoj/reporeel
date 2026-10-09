@@ -110,6 +110,37 @@ bun src/cli.ts https://github.com/owner/repo
 bun src/cli.ts https://github.com/owner/repo/releases/latest --format vertical --grounding both --captions
 ```
 
+## Agent skill: repository movies in your README
+
+The reusable [RepoReel skill](skills/reporeel/SKILL.md) lets an agent generate a
+narrated repo movie, prepare an upload-sized MP4 with captions and a transcript,
+and create a repeatable README video section.
+
+Example requests:
+
+- “Use RepoReel to make a landscape Keynote movie for this repo and add playable
+  media to its README.”
+- “Make movies for these repositories, track each result, and open README PRs.”
+- “Reuse this finished RepoReel movie and prepare its GitHub README player.”
+
+Copy `skills/reporeel/` into your agent's discovered skills directory, or load
+its `SKILL.md` directly in workspace agents. Set `REPOREEL_ROOT` to an installed
+RepoReel checkout. The skill needs the same rendering runtime as the application;
+its media helper additionally uses Python 3.10+, ffmpeg and ffprobe. It does not
+deploy a server or provision provider credentials.
+
+**GitHub inline playback requires a video attachment URL.** The skill prepares
+the movie for GitHub's authenticated browser uploader, then inserts the returned
+URL into a managed README block. Upload is a browser/operator step when browser
+automation is unavailable; an ordinary repository MP4 link is not presented as
+an embedded player. The helper defaults to a 9.5 MB upload budget.
+See [publication details](skills/reporeel/references/github-media.md).
+
+The skill documents source review, per-repository progress, sequential rendering,
+and reuse of completed movies. Rendering uses the configured OpenRouter provider;
+packaging an existing movie makes no model calls. Public sources are the supported
+default; private repositories require a separate private-data workflow.
+
 ## Architecture
 
 ```
