@@ -7,7 +7,8 @@
     "start": "bun src/server.ts",
     "pipeline": "bun src/cli.ts",
     "test": "bun test",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "preview": "bun src/preview.ts"
   },
   "dependencies": {
     "gsap": "^3.15.0",
