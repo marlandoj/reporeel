@@ -6,6 +6,23 @@ Live: **https://reporeel-marlandoj.zocomputer.io**
 
 Built solo in 48 hours for [Hackyard Yard #1](https://hackyard.tech/yards/yard-1) — theme: **"No accounts."**
 
+## Website and studio
+
+The homepage at `/` introduces RepoReel with a playable Hermes × Zouroboros demo,
+format previews, and README publishing guidance. Open `/studio` to create a movie;
+existing `/v/:id` watch links continue to work.
+
+Preview the site locally without provider credentials or background workers:
+
+```bash
+bun install --frozen-lockfile
+bun run preview
+# http://127.0.0.1:3902
+```
+
+The preview plays the sample video and shows the studio; it does not generate
+movies. Use the full server for the pipeline. See [site setup and screenshots](docs/site/README.md).
+
 ## What it does
 
 Give RepoReel any public GitHub repository, pull request, release, or compare URL and it produces a ~60 second narrated explainer video, on the spot:
