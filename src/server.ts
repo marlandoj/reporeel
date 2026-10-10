@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { existsSync, readFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { pageHtml } from "./lib/ui";
+import { site } from "./lib/site";
 import { DATA_DIR, JOBS_DIR, getJob, updateJob, jobDirFor, type Job } from "./lib/db";
 import {
   submitJob, queuePosition, queueDepth, recentDone, startWorker, isOwner, jobOptions,
@@ -129,7 +130,7 @@ function ownerFromRequest(c: Context, job: Job): boolean {
   return isOwner(job, c.req.header("x-owner-token"));
 }
 
-app.get("/", (c) => c.html(pageHtml(null)));
+app.route("/", site);
 
 app.get("/v/:id", (c) => {
   const job = getJob(c.req.param("id"));
