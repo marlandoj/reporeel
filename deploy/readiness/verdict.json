@@ -1,0 +1,78 @@
+{
+  "verdict": "do-not-launch",
+  "label": "Do Not Launch",
+  "emoji": "🔴",
+  "reason": "4 hard blocker(s) and/or critical finding(s) detected",
+  "scores": {
+    "critical": 4,
+    "high": 6,
+    "medium": 8,
+    "low": 15,
+    "info": 0,
+    "total": 33
+  },
+  "hardBlockerIds": [
+    "db.sql-concat.src/lib/queue.ts.38",
+    "db.sql-concat.src/lib/queue.ts.44",
+    "db.sql-concat.src/lib/queue.ts.58",
+    "db.sql-concat.src/lib/queue.ts.64"
+  ],
+  "findingsVerdict": "do-not-launch",
+  "coverageCeiling": "private-beta-only",
+  "cappedByCoverage": false,
+  "coverage": {
+    "incomplete": true,
+    "missingScanners": [
+      "gitleaks",
+      "semgrep",
+      "osv-scanner"
+    ],
+    "gaps": [
+      {
+        "kind": "domain:secrets:partial",
+        "severity": "soft",
+        "detail": "secrets ran with reduced coverage — ran without gitleaks, trufflehog"
+      },
+      {
+        "kind": "domain:authentication:partial",
+        "severity": "soft",
+        "detail": "authentication ran with reduced coverage — ran without semgrep"
+      },
+      {
+        "kind": "domain:owasp:partial",
+        "severity": "soft",
+        "detail": "owasp ran with reduced coverage — ran without semgrep, osv-scanner"
+      },
+      {
+        "kind": "domain:browser-test:no-coverage",
+        "severity": "soft",
+        "detail": "browser-test could not be exercised — no --url provided; runtime browser behavior was not exercised"
+      },
+      {
+        "kind": "domain:concurrency:partial",
+        "severity": "soft",
+        "detail": "concurrency ran with reduced coverage — static heuristics only; race conditions need runtime confirmation"
+      },
+      {
+        "kind": "domain:visual-consistency:partial",
+        "severity": "soft",
+        "detail": "visual-consistency ran with reduced coverage — no URL — static heuristics only, no rendered inspection"
+      },
+      {
+        "kind": "domain:seo-aeo:partial",
+        "severity": "soft",
+        "detail": "seo-aeo ran with reduced coverage — no audit URL provided; repo heuristics only — live crawl/index signals not verified"
+      },
+      {
+        "kind": "scanners:multiple-missing",
+        "severity": "blocking",
+        "detail": "3 core scanners unavailable (gitleaks, semgrep, osv-scanner) — external verification is largely absent; only in-process heuristics ran"
+      },
+      {
+        "kind": "manual:critical-unverified",
+        "severity": "soft",
+        "detail": "5 critical manual check(s) not signed off — pass --manual-verified after a human confirms them"
+      }
+    ]
+  }
+}
