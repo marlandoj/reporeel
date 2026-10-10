@@ -1,3 +1,4 @@
+import { openRouterJson, ControlError } from "./controls";
 import {
   lintSte100,
   steWordCount,
@@ -171,22 +172,13 @@ export function steStrengths(): { id: string; label: string; blurb: string }[] {
   return (Object.keys(STE_MODES) as RewriteMode[]).map((k) => ({ id: k, label: STE_MODES[k].label, blurb: STE_MODES[k].blurb }));
 }
 
-async function chat(system: string, user: string): Promise<string> {
-  const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: MODELS[0],
-      messages: [
-        { role: "system", content: system },
-        { role: "user", content: user },
-      ],
-      temperature: 0.2,
-      max_tokens: 4000,
-    }),
+async function chat(model: string, system: string, user: string): Promise<string> {
+  const data = await openRouterJson({
+    model,
+    messages: [{ role: "system", content: system }, { role: "user", content: user }],
+    temperature: 0.2,
+    max_tokens: 4000,
   });
-  if (!res.ok) throw new Error(`The rewrite model returned ${res.status}. Try Check only.`);
-  const data: any = await res.json();
   const content = data.choices?.[0]?.message?.content;
   if (!content) throw new Error("The rewrite model returned an empty answer.");
   return String(content);
@@ -207,9 +199,10 @@ export async function rewritePlain(text: string, strength = "soft", tone = "keep
   let out = "";
   for (const model of MODELS) {
     try {
-      out = await chat(system.replace("anthropic/claude-sonnet-4.5", model), user);
+      out = await chat(model, system, user);
       break;
-    } catch {
+    } catch (e) {
+      if (e instanceof ControlError) throw e;
       continue;
     }
   }

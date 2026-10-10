@@ -1,0 +1,1188 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Production-Readiness Audit RepoReel — Do Not Launch</title>
+<style>
+  :root {
+    --bg: #0b0d12;
+    --fg: #e6e8ee;
+    --muted: #8b93a7;
+    --card: #141821;
+    --border: rgba(255,255,255,0.08);
+    --accent: #7dd3fc;
+    --crit: #f43f5e;
+    --high: #f97316;
+    --med: #eab308;
+    --low: #38bdf8;
+    --info: #94a3b8;
+  }
+  body { background: var(--bg); color: var(--fg); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; margin: 0; padding: 0; line-height: 1.55; }
+  .container { max-width: 960px; margin: 0 auto; padding: 32px 24px; }
+  h1 { font-size: 32px; margin-bottom: 8px; letter-spacing: -0.02em; }
+  h2 { margin-top: 40px; padding-bottom: 8px; border-bottom: 1px solid var(--border); font-size: 22px; }
+  h3 { margin-top: 28px; font-size: 18px; color: var(--accent); }
+  h4 { margin-top: 22px; font-size: 16px; }
+  code, pre { font-family: ui-monospace, "SF Mono", monospace; font-size: 13px; }
+  pre { background: var(--card); border: 1px solid var(--border); padding: 12px 14px; border-radius: 8px; overflow-x: auto; }
+  code { background: var(--card); padding: 1px 6px; border-radius: 4px; border: 1px solid var(--border); }
+  pre code { background: transparent; border: 0; padding: 0; }
+  table { border-collapse: collapse; margin: 12px 0; }
+  th, td { padding: 8px 12px; border: 1px solid var(--border); text-align: left; }
+  th { background: var(--card); }
+  blockquote { border-left: 3px solid var(--accent); padding: 4px 16px; margin: 16px 0; color: var(--muted); background: rgba(125,211,252,0.05); border-radius: 0 6px 6px 0; }
+  a { color: var(--accent); }
+  hr { border: 0; border-top: 1px solid var(--border); margin: 32px 0; }
+  ul { padding-left: 22px; }
+  li { margin: 4px 0; }
+  .verdict-do-not-launch { color: var(--crit); }
+  .verdict-private-beta-only { color: var(--high); }
+  .verdict-launch-with-monitoring { color: var(--med); }
+  .verdict-launch-ready { color: #4ade80; }
+</style>
+</head>
+<body>
+<div class="container">
+<h1>Production-Readiness Audit</h1>
+
+<p><strong>Generated:</strong> 2026-10-10T01:11:30.145Z</p>
+<p><strong>App:</strong> RepoReel — Repository movie showcase and creation studio</p>
+<p><strong>Repo:</strong> <code>/opt/zouroboros/repo/Projects/reporeel-deploy/reporeel</code></p>
+<p><strong>Audit duration:</strong> 0.4s</p>
+
+<h2 class="verdict-verdict-do-not-launch">Verdict — 🔴 Do Not Launch</h2>
+
+<blockquote>4 hard blocker(s) and/or critical finding(s) detected</blockquote>
+
+<table>
+<tr><th>Severity</th><th>Count</th></tr>
+<tr><td>🔴 Critical</td><td>4</td></tr>
+<tr><td>🟠 High</td><td>6</td></tr>
+<tr><td>🟡 Medium</td><td>8</td></tr>
+<tr><td>🔵 Low</td><td>15</td></tr>
+<tr><td>⚪ Info</td><td>0</td></tr>
+</table>
+
+<h2>Coverage</h2>
+
+<blockquote>⚠️ This audit was <strong>incomplete</strong> — coverage gaps cap the verdict at <strong>Private Beta Only</strong>. A clean result here means "no problems found in what we could inspect", not "safe to launch".</blockquote>
+
+<p><strong>Coverage gaps:</strong></p>
+
+<ul>
+<li>• soft — secrets ran with reduced coverage — ran without gitleaks, trufflehog</li>
+<li>• soft — authentication ran with reduced coverage — ran without semgrep</li>
+<li>• soft — owasp ran with reduced coverage — ran without semgrep, osv-scanner</li>
+<li>• soft — browser-test could not be exercised — no --url provided; runtime browser behavior was not exercised</li>
+<li>• soft — concurrency ran with reduced coverage — static heuristics only; race conditions need runtime confirmation</li>
+<li>• soft — visual-consistency ran with reduced coverage — no URL — static heuristics only, no rendered inspection</li>
+<li>• soft — seo-aeo ran with reduced coverage — no audit URL provided; repo heuristics only — live crawl/index signals not verified</li>
+<li>🚧 <strong>blocking</strong> — 3 core scanners unavailable (gitleaks, semgrep, osv-scanner) — external verification is largely absent; only in-process heuristics ran</li>
+<li>• soft — 5 critical manual check(s) not signed off — pass --manual-verified after a human confirms them</li>
+</ul>
+
+<table>
+<tr><th>Domain</th><th>Coverage</th></tr>
+<tr><td>Legal & Data Handling</td><td>✅ Full</td></tr>
+<tr><td>Secrets & Credential Exposure</td><td>🟡 Partial — ran without gitleaks, trufflehog</td></tr>
+<tr><td>Authentication & Authorization</td><td>🟡 Partial — ran without semgrep</td></tr>
+<tr><td>API Route Safety</td><td>✅ Full</td></tr>
+<tr><td>OWASP Baseline</td><td>🟡 Partial — ran without semgrep, osv-scanner</td></tr>
+<tr><td>Abuse, Cost & Rate Limits</td><td>✅ Full</td></tr>
+<tr><td>Frontend Exposure</td><td>✅ Full</td></tr>
+<tr><td>Logging & Monitoring</td><td>✅ Full</td></tr>
+<tr><td>Accessibility</td><td>✅ Full</td></tr>
+<tr><td>Performance & Reliability</td><td>✅ Full</td></tr>
+<tr><td>Payments & Webhooks</td><td>✅ Full</td></tr>
+<tr><td>File Upload Safety</td><td>✅ Full</td></tr>
+<tr><td>Database & Data Access</td><td>✅ Full</td></tr>
+<tr><td>AI-Generated Code Failure Modes</td><td>✅ Full</td></tr>
+<tr><td>Browser Testing</td><td>🔴 None — no --url provided; runtime browser behavior was not exercised</td></tr>
+<tr><td>Concurrency & State Integrity</td><td>🟡 Partial — static heuristics only; race conditions need runtime confirmation</td></tr>
+<tr><td>Visual Consistency</td><td>🟡 Partial — no URL — static heuristics only, no rendered inspection</td></tr>
+<tr><td>seo-aeo</td><td>🟡 Partial — no audit URL provided; repo heuristics only — live crawl/index signals not verified</td></tr>
+</table>
+
+<h2>🚨 Hard Blockers — must fix before launch</h2>
+
+<ul>
+<li><strong>SQL query built via string concatenation/interpolation</strong> — database — <code>db.sql-concat.src/lib/queue.ts.38</code></li>
+<li><strong>SQL query built via string concatenation/interpolation</strong> — database — <code>db.sql-concat.src/lib/queue.ts.44</code></li>
+<li><strong>SQL query built via string concatenation/interpolation</strong> — database — <code>db.sql-concat.src/lib/queue.ts.58</code></li>
+<li><strong>SQL query built via string concatenation/interpolation</strong> — database — <code>db.sql-concat.src/lib/queue.ts.64</code></li>
+</ul>
+
+<h2>Remediation shape</h2>
+
+<h3>🔧 Targeted code changes — 5</h3>
+
+<ul>
+<li>🟡 <strong>Read-modify-write with no transaction / optimistic lock</strong> — <code>concurrency.lost-update.tests/controls-runner.ts</code></li>
+<li>🟡 <strong>Read-modify-write with no transaction / optimistic lock</strong> — <code>concurrency.lost-update.src/lib/controls.ts</code></li>
+<li>🟡 <strong>Read-modify-write with no transaction / optimistic lock</strong> — <code>concurrency.lost-update.src/lib/review.ts</code></li>
+<li>🔵 <strong>No JSON-LD structured data in any template</strong> — <code>seo-aeo.repo-missing-jsonld</code></li>
+<li>🔵 <strong>noindex directive in template: lib/ste100page.ts</strong> — <code>seo-aeo.repo-noindex-template.L29wdC96b3Vy</code></li>
+</ul>
+
+<h2>Tooling</h2>
+
+<table>
+<tr><th>Tool</th><th>Available</th><th>Version</th></tr>
+<tr><td><code>gitleaks</code></td><td>❌</td><td>—</td></tr>
+<tr><td><code>trufflehog</code></td><td>❌</td><td>—</td></tr>
+<tr><td><code>semgrep</code></td><td>❌</td><td>—</td></tr>
+<tr><td><code>osv-scanner</code></td><td>❌</td><td>—</td></tr>
+<tr><td><code>trivy</code></td><td>❌</td><td>—</td></tr>
+<tr><td><code>lighthouse</code></td><td>❌</td><td>—</td></tr>
+<tr><td><code>axe</code></td><td>❌</td><td>—</td></tr>
+<tr><td><code>pa11y</code></td><td>❌</td><td>—</td></tr>
+<tr><td><code>nuclei</code></td><td>❌</td><td>—</td></tr>
+</table>
+
+<h2>Findings by domain</h2>
+
+<h3>Legal & Data Handling</h3>
+
+<p><em>Ran in 0.02s with: production-ready:repo-grep</em></p>
+
+<h4>🟡 No privacy policy page found</h4>
+
+<p><em>MEDIUM — production-ready:repo-grep</em></p>
+
+<p>No file or route resembling a privacy policy was detected. Apps that collect user data need a published, accessible privacy policy.</p>
+
+<p><strong>Fix:</strong></p>
+
+<p>Add <code>/privacy</code> (or similar) describing what data you collect, why, how long it's retained, third parties it's shared with, and how users can export/delete it.</p>
+
+<p><strong>References:</strong> <a href="https://gdpr.eu/article-13-notice/">https://gdpr.eu/article-13-notice/</a>, <a href="https://oag.ca.gov/privacy/ccpa">https://oag.ca.gov/privacy/ccpa</a></p>
+
+<h4>🟡 No terms of service found</h4>
+
+<p><em>MEDIUM — production-ready:repo-grep</em></p>
+
+<p>No file or route resembling Terms of Service was detected. Public-facing apps should publish ToS limiting liability and defining acceptable use.</p>
+
+<p><strong>Fix:</strong></p>
+
+<p>Add <code>/terms</code> covering acceptable use, liability disclaimers, dispute resolution, and termination conditions.</p>
+
+<p><strong>Manual review for this domain:</strong></p>
+
+<ul>
+<li>[ ] List every third party that receives user data (analytics, error reporting, LLM providers, payment processors)</li>
+</ul>
+<p>  - <em>why:</em> Required for GDPR/CCPA disclosure and Data Processing Agreements.</p>
+<ul>
+<li>[ ] Define data retention windows per data type</li>
+</ul>
+<p>  - <em>why:</em> Indefinite retention is hostile to user privacy and increases breach blast radius.</p>
+<ul>
+<li>[ ] Verify Data Processing Agreement (DPA) signed with each sub-processor</li>
+</ul>
+<p>  - <em>why:</em> GDPR Article 28 requires DPAs with processors handling personal data.</p>
+<ul>
+<li>[ ] Cookie banner / consent management is wired (if EU/UK users)</li>
+</ul>
+<p>  - <em>why:</em> GDPR + ePrivacy Directive require informed consent for non-essential cookies.</p>
+<ul>
+<li>[ ] Privacy policy lists all processors + retention windows + lawful basis</li>
+</ul>
+<p>  - <em>why:</em> Plain-language disclosure is legally required, not optional.</p>
+
+<hr>
+
+<h3>Secrets & Credential Exposure</h3>
+
+<p><em>Ran in 0.08s with: none</em></p>
+
+<blockquote>Missing tools: <code>gitleaks</code>, <code>trufflehog</code></blockquote>
+
+<p>✅ No findings in this domain.</p>
+<p><strong>Manual review for this domain:</strong></p>
+
+<ul>
+<li>[ ] Confirm publishable/anon keys are documented as intentionally-public by the provider</li>
+</ul>
+<p>  - <em>why:</em> Some 'public' keys are safe to expose (Stripe publishable, Supabase anon); others are not.</p>
+<ul>
+<li>[ ] Verify credential rotation cadence is defined and tested</li>
+</ul>
+<p>  - <em>why:</em> Even unleaked credentials should be rotated periodically.</p>
+<ul>
+<li>[ ] Check provider audit logs for unexpected access</li>
+</ul>
+<p>  - <em>why:</em> Past leaks may have been exploited.</p>
+
+<hr>
+
+<h3>Authentication & Authorization</h3>
+
+<p><em>Ran in 0.02s with: none</em></p>
+
+<blockquote>Missing tools: <code>semgrep</code></blockquote>
+
+<p>✅ No findings in this domain.</p>
+<p><strong>Manual review for this domain:</strong></p>
+
+<ul>
+<li>[ ] Test ownership boundaries — sign in as user A, try to access user B's resources via direct URL</li>
+</ul>
+<p>  - <em>why:</em> BOLA / IDOR is the #1 API vuln per OWASP API Top 10 2023.</p>
+<ul>
+<li>[ ] Verify MFA is available (and required for admin)</li>
+</ul>
+<p>  - <em>why:</em> Compromised passwords are the most common breach vector.</p>
+<ul>
+<li>[ ] Confirm session timeout + inactivity logout exists</li>
+</ul>
+<p>  - <em>why:</em> Long-lived sessions on shared/public devices are a leak path.</p>
+<ul>
+<li>[ ] Check rate limit on login + password reset endpoints</li>
+</ul>
+<p>  - <em>why:</em> Credential stuffing & enumeration require throttling.</p>
+
+<hr>
+
+<h3>API Route Safety</h3>
+
+<p><em>Ran in 0.04s with: production-ready:repo-grep</em></p>
+
+<h4>🟠 No rate-limiting middleware detected</h4>
+
+<p><em>HIGH — production-ready:rate-limit-grep</em></p>
+
+<p>Detected 15 API handlers but no rate-limiting library is imported anywhere. Public APIs without rate limits invite credential stuffing, scraping, and billing abuse.</p>
+
+<p><strong>Fix:</strong></p>
+
+<p>Add a rate limiter at the edge or middleware layer (express-rate-limit, @upstash/ratelimit, or your platform's WAF). Limit per IP AND per user. Apply stricter limits to auth/password-reset routes.</p>
+
+<p><strong>References:</strong> <a href="https://owasp.org/API-Security/editions/2023/en/0xa4-unrestricted-resource-consumption/">https://owasp.org/API-Security/editions/2023/en/0xa4-unrestricted-resource-consumption/</a></p>
+
+<p><strong>Manual review for this domain:</strong></p>
+
+<ul>
+<li>[ ] Verify every state-changing endpoint requires POST/PUT/PATCH/DELETE (not GET)</li>
+</ul>
+<p>  - <em>why:</em> GET requests are logged in browser history, referrer headers, and CDN logs.</p>
+<ul>
+<li>[ ] Confirm OpenAPI/Swagger spec exists and matches implementation</li>
+</ul>
+<p>  - <em>why:</em> Drift between docs and code hides shadow endpoints.</p>
+<ul>
+<li>[ ] Test rate limits return 429 with a Retry-After header</li>
+</ul>
+<p>  - <em>why:</em> Some implementations silently drop; clients need feedback.</p>
+
+<hr>
+
+<h3>OWASP Baseline</h3>
+
+<p><em>Ran in 0.01s with: none</em></p>
+
+<blockquote>Missing tools: <code>semgrep</code>, <code>osv-scanner</code></blockquote>
+
+<p>✅ No findings in this domain.</p>
+<p><strong>Manual review for this domain:</strong></p>
+
+<ul>
+<li>[ ] Threat-model the auth boundary: what does a malicious authenticated user gain access to?</li>
+</ul>
+<p>  - <em>why:</em> OWASP A04 (Insecure Design) cannot be detected by scanners — needs human judgement.</p>
+<ul>
+<li>[ ] Review every dependency added in the last 6 months for typosquatting / abandoned-maintainer risk</li>
+</ul>
+<p>  - <em>why:</em> Supply-chain attacks (A08) target recently-added or unmaintained packages.</p>
+<ul>
+<li>[ ] Run a real DAST (ZAP full scan) at least once before launch and after every major release</li>
+</ul>
+<p>  - <em>why:</em> Static analysis cannot replicate exploit paths.</p>
+
+<hr>
+
+<h3>Abuse, Cost & Rate Limits</h3>
+
+<p><em>Ran in 0.02s with: production-ready:abuse-grep</em></p>
+
+<p>✅ No findings in this domain.</p>
+<p><strong>Manual review for this domain:</strong></p>
+
+<ul>
+<li>[ ] Confirm a per-tenant daily/monthly cost cap is enforced at the application layer</li>
+</ul>
+<p>  - <em>why:</em> Rate limits alone don't prevent a single bad actor from draining a budget within their quota.</p>
+<ul>
+<li>[ ] Bot/CAPTCHA on signup + login + 'forgot password'</li>
+</ul>
+<p>  - <em>why:</em> Most abuse arrives via cheap-account creation.</p>
+<ul>
+<li>[ ] Billing-anomaly alert wired to ops channel</li>
+</ul>
+<p>  - <em>why:</em> Catch runaway costs in minutes not days.</p>
+
+<hr>
+
+<h3>Frontend Exposure</h3>
+
+<p><em>Ran in 0.01s with: production-ready:bundle-scan</em></p>
+
+<h4>🔵 Internal URL / IP hardcoded in source</h4>
+
+<p><em>LOW — production-ready:internal-url-grep</em></p>
+
+<p>Hard-coded internal hostnames or IPs end up in the production bundle and may reveal architecture details to attackers.</p>
+
+<p><strong>Evidence:</strong></p>
+
+<ul>
+<li><code>tests/controls-runner.ts:47</code></li>
+<pre><code>
+  process.env.REPOREEL_TRUSTED_PROXIES = &quot;127.0.0.1&quot;;
+</code></pre>
+</ul>
+
+<p><strong>Fix:</strong></p>
+
+<p>Move URLs to environment-driven config. Verify the build pipeline strips dev-only paths.</p>
+
+<h4>🔵 Internal URL / IP hardcoded in source</h4>
+
+<p><em>LOW — production-ready:internal-url-grep</em></p>
+
+<p>Hard-coded internal hostnames or IPs end up in the production bundle and may reveal architecture details to attackers.</p>
+
+<p><strong>Evidence:</strong></p>
+
+<ul>
+<li><code>tests/controls-runner.ts:48</code></li>
+<pre><code>
+  assert.equal(visitorIp(&quot;127.0.0.1&quot;, headers), &quot;203.0.113.9&quot;);
+</code></pre>
+</ul>
+
+<p><strong>Fix:</strong></p>
+
+<p>Move URLs to environment-driven config. Verify the build pipeline strips dev-only paths.</p>
+
+<h4>🔵 Internal URL / IP hardcoded in source</h4>
+
+<p><em>LOW — production-ready:internal-url-grep</em></p>
+
+<p>Hard-coded internal hostnames or IPs end up in the production bundle and may reveal architecture details to attackers.</p>
+
+<p><strong>Evidence:</strong></p>
+
+<ul>
+<li><code>tests/controls-runner.ts:49</code></li>
+<pre><code>
+  assert.equal(visitorIp(&quot;::ffff:127.0.0.1&quot;, headers), &quot;203.0.113.9&quot;);
+</code></pre>
+</ul>
+
+<p><strong>Fix:</strong></p>
+
+<p>Move URLs to environment-driven config. Verify the build pipeline strips dev-only paths.</p>
+
+<h4>🔵 Internal URL / IP hardcoded in source</h4>
+
+<p><em>LOW — production-ready:internal-url-grep</em></p>
+
+<p>Hard-coded internal hostnames or IPs end up in the production bundle and may reveal architecture details to attackers.</p>
+
+<p><strong>Evidence:</strong></p>
+
+<ul>
+<li><code>tests/controls-runner.ts:50</code></li>
+<pre><code>
+  assert.equal(visitorIp(&quot;127.0.0.1&quot;, new Headers({ &quot;x-real-ip&quot;: &quot;a,b&quot; })), &quot;127.0.0.1&quot;);
+</code></pre>
+</ul>
+
+<p><strong>Fix:</strong></p>
+
+<p>Move URLs to environment-driven config. Verify the build pipeline strips dev-only paths.</p>
+
+<h4>🔵 Internal URL / IP hardcoded in source</h4>
+
+<p><em>LOW — production-ready:internal-url-grep</em></p>
+
+<p>Hard-coded internal hostnames or IPs end up in the production bundle and may reveal architecture details to attackers.</p>
+
+<p><strong>Evidence:</strong></p>
+
+<ul>
+<li><code>tests/controls-runner.ts:123</code></li>
+<pre><code>
+  return app.fetch(new Request(&quot;http://localhost&quot; + path, {
+</code></pre>
+</ul>
+
+<p><strong>Fix:</strong></p>
+
+<p>Move URLs to environment-driven config. Verify the build pipeline strips dev-only paths.</p>
+
+<p><strong>Manual review for this domain:</strong></p>
+
+<ul>
+<li>[ ] Open DevTools → Network tab on the production app — is any request going to a dev/staging URL?</li>
+</ul>
+<p>  - <em>why:</em> AI-generated code commonly leaves mixed-environment URLs after a copy-paste.</p>
+<ul>
+<li>[ ] Check the bundle for comments / console.log statements</li>
+</ul>
+<p>  - <em>why:</em> Debug output may leak request/response shapes and PII.</p>
+
+<hr>
+
+<h3>Logging & Monitoring</h3>
+
+<p><em>Ran in 0.03s with: production-ready:logger-grep</em></p>
+
+<h4>🟡 No structured logger detected</h4>
+
+<p><em>MEDIUM — production-ready:logger-grep</em></p>
+
+<p>Unstructured logs are harder to search, redact, and rate-limit. They cost more in centralized log stores.</p>
+
+<p><strong>Fix:</strong></p>
+
+<p>Adopt pino (Node), structlog (Python), zap/slog (Go). Configure built-in PII redaction. Tag every log with request_id, user_id (hashed), tenant_id.</p>
+
+<h4>🟡 No error tracker integration detected</h4>
+
+<p><em>MEDIUM — production-ready:tracker-grep</em></p>
+
+<p>Unobserved errors are unfixed errors. Without Sentry/Bugsnag/Datadog, you find out about prod issues from angry users.</p>
+
+<p><strong>Fix:</strong></p>
+
+<p>Wire Sentry (or equivalent) on both client and server. Set release/environment tags. Configure source-map upload.</p>
+
+<p><strong>References:</strong> <a href="https://docs.sentry.io/">https://docs.sentry.io/</a></p>
+
+<p><strong>Manual review for this domain:</strong></p>
+
+<ul>
+<li>[ ] Verify centralized logs are searchable for at least 7 days</li>
+</ul>
+<p>  - <em>why:</em> Incidents are often noticed after they end; you need retention to retro.</p>
+<ul>
+<li>[ ] Confirm uptime monitor with on-call paging (StatusCake / BetterStack / Pingdom)</li>
+</ul>
+<p>  - <em>why:</em> External probe catches what your internal metrics can't.</p>
+<ul>
+<li>[ ] Per-tenant audit trail for: auth events, permission changes, admin actions, data exports</li>
+</ul>
+<p>  - <em>why:</em> Required for SOC 2 + GDPR + breach forensics.</p>
+
+<hr>
+
+<h3>Accessibility</h3>
+
+<p><em>Ran in 0.00s with: none</em></p>
+
+<p>✅ No findings in this domain.</p>
+<p><strong>Manual review for this domain:</strong></p>
+
+<ul>
+<li>[ ] Keyboard-only pass: can you reach every interactive control with Tab? Operate it with Enter/Space?</li>
+</ul>
+<p>  - <em>why:</em> Automated tools catch ~30–40% of WCAG issues; keyboard ops can't be inferred from DOM.</p>
+<ul>
+<li>[ ] Screen reader smoke test (VoiceOver / NVDA): does the announcement order make sense?</li>
+</ul>
+<p>  - <em>why:</em> Visually-ordered DOM can confuse screen readers.</p>
+<ul>
+<li>[ ] Reduced motion preference is honored</li>
+</ul>
+<p>  - <em>why:</em> WCAG 2.3.3 (Animation from Interactions) and motion-disorder users.</p>
+
+<hr>
+
+<h3>Performance & Reliability</h3>
+
+<p><em>Ran in 0.00s with: none</em></p>
+
+<p>✅ No findings in this domain.</p>
+<p><strong>Manual review for this domain:</strong></p>
+
+<ul>
+<li>[ ] Tested rollback procedure in staging within last 30 days</li>
+</ul>
+<p>  - <em>why:</em> An untested rollback is a hope, not a plan.</p>
+<ul>
+<li>[ ] Backups exist AND restore has been tested in last 90 days</li>
+</ul>
+<p>  - <em>why:</em> Schrödinger's backup: simultaneously exists and doesn't until verified.</p>
+<ul>
+<li>[ ] Capacity tested at ≥ 2× projected peak traffic</li>
+</ul>
+<p>  - <em>why:</em> Launch traffic spikes are bigger than steady state.</p>
+<ul>
+<li>[ ] Per-route SLOs defined with error budget tracking</li>
+</ul>
+<p>  - <em>why:</em> Reliability targets without budgets become aspirations.</p>
+
+<hr>
+
+<h3>Payments & Webhooks</h3>
+
+<p><em>Ran in 0.01s with: none</em></p>
+
+<p>✅ No findings in this domain.</p>
+<p><strong>Manual review for this domain:</strong></p>
+
+<ul>
+<li>[ ] Confirm app has no money-handling surface</li>
+</ul>
+<p>  - <em>why:</em> If payments appear later, re-run this check.</p>
+
+<hr>
+
+<h3>File Upload Safety</h3>
+
+<p><em>Ran in 0.01s with: none</em></p>
+
+<p>✅ No findings in this domain.</p>
+<p><strong>Manual review for this domain:</strong></p>
+
+<ul>
+<li>[ ] No upload code detected — confirm app does not accept user uploads.</li>
+</ul>
+<p>  - <em>why:</em> Re-run when uploads are added.</p>
+
+<hr>
+
+<h3>Database & Data Access</h3>
+
+<p><em>Ran in 0.01s with: production-ready:db-grep</em></p>
+
+<h4>🔴 SQL query built via string concatenation/interpolation (HARD BLOCKER)</h4>
+
+<p><em>CRITICAL — production-ready:sql-concat-grep</em></p>
+
+<p>Concatenating user input into SQL is the textbook SQL-injection vector.</p>
+
+<p><strong>Evidence:</strong></p>
+
+<ul>
+<li><code>src/lib/queue.ts:38</code></li>
+<pre><code>
+  query(`SELECT id FROM jobs WHERE canonical = ? AND variant = ? AND status IN (${PENDING_SQL}) LIMIT 1`
+</code></pre>
+</ul>
+
+<p><strong>Fix:</strong></p>
+
+<p>Use parameterised queries (<code>?</code> / <code>$1</code> placeholders) or an ORM. Never concatenate untrusted input into SQL.</p>
+
+<p><strong>References:</strong> <a href="https://owasp.org/Top10/A03_2021-Injection/">https://owasp.org/Top10/A03_2021-Injection/</a>, <a href="https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html">https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html</a></p>
+
+<h4>🔴 SQL query built via string concatenation/interpolation (HARD BLOCKER)</h4>
+
+<p><em>CRITICAL — production-ready:sql-concat-grep</em></p>
+
+<p>Concatenating user input into SQL is the textbook SQL-injection vector.</p>
+
+<p><strong>Evidence:</strong></p>
+
+<ul>
+<li><code>src/lib/queue.ts:44</code></li>
+<pre><code>
+  query(`SELECT COUNT(*) as n FROM jobs WHERE status IN (${PENDING_SQL})`
+</code></pre>
+</ul>
+
+<p><strong>Fix:</strong></p>
+
+<p>Use parameterised queries (<code>?</code> / <code>$1</code> placeholders) or an ORM. Never concatenate untrusted input into SQL.</p>
+
+<p><strong>References:</strong> <a href="https://owasp.org/Top10/A03_2021-Injection/">https://owasp.org/Top10/A03_2021-Injection/</a>, <a href="https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html">https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html</a></p>
+
+<h4>🔴 SQL query built via string concatenation/interpolation (HARD BLOCKER)</h4>
+
+<p><em>CRITICAL — production-ready:sql-concat-grep</em></p>
+
+<p>Concatenating user input into SQL is the textbook SQL-injection vector.</p>
+
+<p><strong>Evidence:</strong></p>
+
+<ul>
+<li><code>src/lib/queue.ts:58</code></li>
+<pre><code>
+  query(`SELECT COUNT(*) as n FROM jobs WHERE status IN (${ACTIVE_SQL}) AND id != ? AND (status != &#39;queued&#39; OR created_at &lt; ?)`
+</code></pre>
+</ul>
+
+<p><strong>Fix:</strong></p>
+
+<p>Use parameterised queries (<code>?</code> / <code>$1</code> placeholders) or an ORM. Never concatenate untrusted input into SQL.</p>
+
+<p><strong>References:</strong> <a href="https://owasp.org/Top10/A03_2021-Injection/">https://owasp.org/Top10/A03_2021-Injection/</a>, <a href="https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html">https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html</a></p>
+
+<h4>🔴 SQL query built via string concatenation/interpolation (HARD BLOCKER)</h4>
+
+<p><em>CRITICAL — production-ready:sql-concat-grep</em></p>
+
+<p>Concatenating user input into SQL is the textbook SQL-injection vector.</p>
+
+<p><strong>Evidence:</strong></p>
+
+<ul>
+<li><code>src/lib/queue.ts:64</code></li>
+<pre><code>
+  query(`SELECT COUNT(*) as n FROM jobs WHERE status IN (${ACTIVE_SQL})`
+</code></pre>
+</ul>
+
+<p><strong>Fix:</strong></p>
+
+<p>Use parameterised queries (<code>?</code> / <code>$1</code> placeholders) or an ORM. Never concatenate untrusted input into SQL.</p>
+
+<p><strong>References:</strong> <a href="https://owasp.org/Top10/A03_2021-Injection/">https://owasp.org/Top10/A03_2021-Injection/</a>, <a href="https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html">https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html</a></p>
+
+<h4>🟡 10 queries appear to not filter by user/tenant column</h4>
+
+<p><em>MEDIUM — production-ready:tenant-scope-grep</em></p>
+
+<p>Heuristic — queries without user_id/tenant_id/organization_id filters may be returning cross-tenant data. Review each.</p>
+
+<p><strong>Evidence:</strong></p>
+
+<ul>
+<li><code>tests/controls-runner.ts:69</code></li>
+<pre><code>
+  const steUsed = (db.query(&quot;SELECT used FROM usage_limits WHERE scope=&#39;ste&#39;&quot;).get() as { used: number }).used;
+</code></pre>
+<li><code>tests/controls-runner.ts:188</code></li>
+<pre><code>
+  db.run(&quot;DELETE FROM usage_limits WHERE scope=&#39;ai&#39;&quot;);
+</code></pre>
+<li><code>tests/controls-runner.ts:200</code></li>
+<pre><code>
+  db.run(&quot;DELETE FROM usage_limits WHERE scope=&#39;ai&#39;&quot;);
+</code></pre>
+<li><code>tests/controls-runner.ts:220</code></li>
+<pre><code>
+  db.run(&quot;DELETE FROM usage_limits WHERE scope=&#39;ai&#39;&quot;);
+</code></pre>
+<li><code>tests/controls-runner.ts:232</code></li>
+<pre><code>
+  assert.equal((db.query(&quot;SELECT used FROM usage_limits WHERE scope=&#39;ai&#39;&quot;).get() as { used: number }).used, 1);
+</code></pre>
+</ul>
+
+<p><strong>Fix:</strong></p>
+
+<p>Every query on user-owned tables must filter by the requesting user/tenant. Consider a query-builder middleware that enforces this for you.</p>
+
+<p><strong>References:</strong> <a href="https://owasp.org/API-Security/editions/2023/en/0xa1-broken-object-level-authorization/">https://owasp.org/API-Security/editions/2023/en/0xa1-broken-object-level-authorization/</a></p>
+
+<p><strong>Manual review for this domain:</strong></p>
+
+<ul>
+<li>[ ] Test backup restore in a scratch environment — actually restore, don't just dump</li>
+</ul>
+<p>  - <em>why:</em> Backup files aren't backups; restored databases are.</p>
+<ul>
+<li>[ ] Database admin password rotation policy + last rotation date</li>
+</ul>
+<p>  - <em>why:</em> Long-lived admin creds are a high-value target.</p>
+<ul>
+<li>[ ] Audit log captures: schema changes, role grants, admin queries, data exports</li>
+</ul>
+<p>  - <em>why:</em> Required for SOC 2 + breach forensics.</p>
+<ul>
+<li>[ ] Confirm migrations are idempotent and tested in CI</li>
+</ul>
+<p>  - <em>why:</em> AI-generated migrations frequently aren't reversible.</p>
+
+<hr>
+
+<h3>AI-Generated Code Failure Modes</h3>
+
+<p><em>Ran in 0.04s with: production-ready:ai-heuristics</em></p>
+
+<h4>🟠 Empty <code>catch</code> swallows errors</h4>
+
+<p><em>HIGH — production-ready:ai-silent-catch-js</em></p>
+
+<p>JS/TS catch block is empty or comment-only — errors disappear.</p>
+
+<p><strong>Evidence:</strong></p>
+
+<ul>
+<li><code>src/lib/ui.ts:309</code></li>
+<pre><code>
+  } catch (e) {}
+</code></pre>
+</ul>
+
+<p><strong>Fix:</strong></p>
+
+<p>Log the error and either rethrow or handle it explicitly.</p>
+
+<h4>🟠 Empty <code>catch</code> swallows errors</h4>
+
+<p><em>HIGH — production-ready:ai-silent-catch-js</em></p>
+
+<p>JS/TS catch block is empty or comment-only — errors disappear.</p>
+
+<p><strong>Evidence:</strong></p>
+
+<ul>
+<li><code>src/lib/ui.ts:310</code></li>
+<pre><code>
+  opts.renderer, style: opts.style, plain: opts.plain })); } catch (e) {} }
+</code></pre>
+</ul>
+
+<p><strong>Fix:</strong></p>
+
+<p>Log the error and either rethrow or handle it explicitly.</p>
+
+<h4>🟠 Empty <code>catch</code> swallows errors</h4>
+
+<p><em>HIGH — production-ready:ai-silent-catch-js</em></p>
+
+<p>JS/TS catch block is empty or comment-only — errors disappear.</p>
+
+<p><strong>Evidence:</strong></p>
+
+<ul>
+<li><code>src/lib/ui.ts:323</code></li>
+<pre><code>
+  id, t) { try { localStorage.setItem(&quot;rr-owner-&quot; + id, t); } catch (e) {} }
+</code></pre>
+</ul>
+
+<p><strong>Fix:</strong></p>
+
+<p>Log the error and either rethrow or handle it explicitly.</p>
+
+<h4>🟠 Empty <code>catch</code> swallows errors</h4>
+
+<p><em>HIGH — production-ready:ai-silent-catch-js</em></p>
+
+<p>JS/TS catch block is empty or comment-only — errors disappear.</p>
+
+<p><strong>Evidence:</strong></p>
+
+<ul>
+<li><code>src/lib/ui.ts:669</code></li>
+<pre><code>
+  }).catch(function () {});
+</code></pre>
+</ul>
+
+<p><strong>Fix:</strong></p>
+
+<p>Log the error and either rethrow or handle it explicitly.</p>
+
+<h4>🟠 Empty <code>catch</code> swallows errors</h4>
+
+<p><em>HIGH — production-ready:ai-silent-catch-js</em></p>
+
+<p>JS/TS catch block is empty or comment-only — errors disappear.</p>
+
+<p><strong>Evidence:</strong></p>
+
+<ul>
+<li><code>src/lib/ui.ts:721</code></li>
+<pre><code>
+  }).catch(function () {});
+</code></pre>
+</ul>
+
+<p><strong>Fix:</strong></p>
+
+<p>Log the error and either rethrow or handle it explicitly.</p>
+
+<h4>🔵 Type-checker suppression</h4>
+
+<p><em>LOW — production-ready:ai-type-suppression</em></p>
+
+<p><code>as any</code> / <code>@ts-ignore</code> / <code># type: ignore</code> silences the type checker without fixing the underlying issue.</p>
+
+<p><strong>Evidence:</strong></p>
+
+<ul>
+<li><code>tests/controls-runner.ts:166</code></li>
+<pre><code>
+  assert.throws(() =&gt; approveJob(getJob(reel.id)!), e =&gt; (e as any).status === 429);
+</code></pre>
+</ul>
+
+<p><strong>Fix:</strong></p>
+
+<p>Either fix the underlying type problem or add a justification comment with an issue number to track removal.</p>
+
+<h4>🔵 Type-checker suppression</h4>
+
+<p><em>LOW — production-ready:ai-type-suppression</em></p>
+
+<p><code>as any</code> / <code>@ts-ignore</code> / <code># type: ignore</code> silences the type checker without fixing the underlying issue.</p>
+
+<p><strong>Evidence:</strong></p>
+
+<ul>
+<li><code>tests/controls-runner.ts:176</code></li>
+<pre><code>
+  it assert.rejects(() =&gt; rewriteScene(stale, 1, &quot;&quot;), e =&gt; (e as any).status === 409);
+</code></pre>
+</ul>
+
+<p><strong>Fix:</strong></p>
+
+<p>Either fix the underlying type problem or add a justification comment with an issue number to track removal.</p>
+
+<h4>🔵 Type-checker suppression</h4>
+
+<p><em>LOW — production-ready:ai-type-suppression</em></p>
+
+<p><code>as any</code> / <code>@ts-ignore</code> / <code># type: ignore</code> silences the type checker without fixing the underlying issue.</p>
+
+<p><strong>Evidence:</strong></p>
+
+<ul>
+<li><code>tests/controls-runner.ts:177</code></li>
+<pre><code>
+  assert.throws(() =&gt; saveScript(stale, script), e =&gt; (e as any).status === 409);
+</code></pre>
+</ul>
+
+<p><strong>Fix:</strong></p>
+
+<p>Either fix the underlying type problem or add a justification comment with an issue number to track removal.</p>
+
+<h4>🔵 Type-checker suppression</h4>
+
+<p><em>LOW — production-ready:ai-type-suppression</em></p>
+
+<p><code>as any</code> / <code>@ts-ignore</code> / <code># type: ignore</code> silences the type checker without fixing the underlying issue.</p>
+
+<p><strong>Evidence:</strong></p>
+
+<ul>
+<li><code>tests/controls-runner.ts:178</code></li>
+<pre><code>
+  assert.throws(() =&gt; approveJob(stale), e =&gt; (e as any).status === 409);
+</code></pre>
+</ul>
+
+<p><strong>Fix:</strong></p>
+
+<p>Either fix the underlying type problem or add a justification comment with an issue number to track removal.</p>
+
+<h4>🔵 Type-checker suppression</h4>
+
+<p><em>LOW — production-ready:ai-type-suppression</em></p>
+
+<p><code>as any</code> / <code>@ts-ignore</code> / <code># type: ignore</code> silences the type checker without fixing the underlying issue.</p>
+
+<p><strong>Evidence:</strong></p>
+
+<ul>
+<li><code>tests/controls-runner.ts:184</code></li>
+<pre><code>
+  it assert.rejects(() =&gt; rewriteScene(stale, 1, &quot;&quot;), e =&gt; (e as any).status === 429);
+</code></pre>
+</ul>
+
+<p><strong>Fix:</strong></p>
+
+<p>Either fix the underlying type problem or add a justification comment with an issue number to track removal.</p>
+
+<h4>🔵 Type-checker suppression</h4>
+
+<p><em>LOW — production-ready:ai-type-suppression</em></p>
+
+<p><code>as any</code> / <code>@ts-ignore</code> / <code># type: ignore</code> silences the type checker without fixing the underlying issue.</p>
+
+<p><strong>Evidence:</strong></p>
+
+<ul>
+<li><code>tests/controls-runner.ts:192</code></li>
+<pre><code>
+  (() =&gt; generateScript(facts, normalizeOptions({})), e =&gt; (e as any).status === 429);
+</code></pre>
+</ul>
+
+<p><strong>Fix:</strong></p>
+
+<p>Either fix the underlying type problem or add a justification comment with an issue number to track removal.</p>
+
+<h4>🔵 Type-checker suppression</h4>
+
+<p><em>LOW — production-ready:ai-type-suppression</em></p>
+
+<p><code>as any</code> / <code>@ts-ignore</code> / <code># type: ignore</code> silences the type checker without fixing the underlying issue.</p>
+
+<p><strong>Evidence:</strong></p>
+
+<ul>
+<li><code>tests/controls-runner.ts:196</code></li>
+<pre><code>
+  await assert.rejects(() =&gt; openRouterJson({}), e =&gt; (e as any).status === 503);
+</code></pre>
+</ul>
+
+<p><strong>Fix:</strong></p>
+
+<p>Either fix the underlying type problem or add a justification comment with an issue number to track removal.</p>
+
+<h4>🔵 Type-checker suppression</h4>
+
+<p><em>LOW — production-ready:ai-type-suppression</em></p>
+
+<p><code>as any</code> / <code>@ts-ignore</code> / <code># type: ignore</code> silences the type checker without fixing the underlying issue.</p>
+
+<p><strong>Evidence:</strong></p>
+
+<ul>
+<li><code>tests/controls-runner.ts:205</code></li>
+<pre><code>
+  await assert.rejects(() =&gt; openRouterJson({}), e =&gt; (e as any).status === 429);
+</code></pre>
+</ul>
+
+<p><strong>Fix:</strong></p>
+
+<p>Either fix the underlying type problem or add a justification comment with an issue number to track removal.</p>
+
+<p><strong>Manual review for this domain:</strong></p>
+
+<ul>
+<li>[ ] Diff every AI-generated commit against the previous state — focus on what was REMOVED, not just added</li>
+</ul>
+<p>  - <em>why:</em> Agents commonly remove security checks during 'fixing' a test or unrelated bug.</p>
+<ul>
+<li>[ ] Spot-check tests by running them in --watch + deliberately breaking the SUT — do the tests fail?</li>
+</ul>
+<p>  - <em>why:</em> Fake-passing tests reveal themselves when the code they 'test' actually breaks.</p>
+<ul>
+<li>[ ] Inspect every <code>if NODE_ENV === &#39;production&#39;</code> branch — was the security check actually wired in prod?</li>
+</ul>
+<p>  - <em>why:</em> AI often forgets to remove dev escape hatches.</p>
+
+<hr>
+
+<h3>Browser Testing</h3>
+
+<p><em>Ran in 0.00s with: none</em></p>
+
+<p>✅ No findings in this domain.</p>
+<p><strong>Manual review for this domain:</strong></p>
+
+<ul>
+<li>[ ] Sign-in, sign-out, and 'forgot password' flow on desktop AND mobile viewport</li>
+</ul>
+<p>  - <em>why:</em> Most common UX regression after AI-generated changes.</p>
+<ul>
+<li>[ ] <strong>🔒 (gates launch)</strong> Direct-URL access to authenticated routes when logged out — confirms server-side gating</li>
+</ul>
+<p>  - <em>why:</em> Client-side guards are not enough.</p>
+<ul>
+<li>[ ] Mobile viewport check at 360×640 (iPhone SE size) — tap targets ≥ 44×44px</li>
+</ul>
+<p>  - <em>why:</em> WCAG 2.5.5 + mobile users are typically your largest cohort.</p>
+<ul>
+<li>[ ] Form validation: try submitting empty, oversized, malformed, and SQL/XSS payloads</li>
+</ul>
+<p>  - <em>why:</em> Validation gaps surface here that grep misses.</p>
+<ul>
+<li>[ ] Browser back/forward after sensitive actions (delete, purchase) — does state stay consistent?</li>
+</ul>
+<p>  - <em>why:</em> AI often forgets history.replaceState; back-button reveals stale UI.</p>
+<ul>
+<li>[ ] Open DevTools Network tab during normal use — does any request go to localhost / staging?</li>
+</ul>
+<p>  - <em>why:</em> Mixed-environment URLs leak through AI copy-paste.</p>
+<ul>
+<li>[ ] Check console for errors and warnings across 5+ representative flows</li>
+</ul>
+<p>  - <em>why:</em> Production-only errors (e.g., CSP violations) usually surface here first.</p>
+
+<hr>
+
+<h3>Concurrency & State Integrity</h3>
+
+<p><em>Ran in 0.01s with: production-ready:concurrency-heuristics</em></p>
+
+<h4>🟡 Read-modify-write with no transaction / optimistic lock</h4>
+
+<p><em>MEDIUM — production-ready:lost-update · confidence: low · heuristic · Code change</em></p>
+
+<p>This module reads a record and later writes it back without any transaction, <code>SELECT … FOR UPDATE</code>, or version column. Two concurrent writers can each read the old value and clobber each other — a classic lost update.</p>
+
+<p><strong>Impact:</strong> Silent data loss under concurrency: balances, counters, and inventory drift when two requests race.</p>
+
+<p><strong>Evidence:</strong></p>
+
+<ul>
+<li><code>tests/controls-runner.ts:159</code></li>
+<pre><code>
+  db.run(&quot;UPDATE jobs SET status=&#39;done&#39;&quot;);
+</code></pre>
+</ul>
+
+<p><strong>Fix:</strong></p>
+
+<p>Wrap the read-modify-write in a transaction, or use an optimistic-lock version column and retry on conflict, or push the mutation into a single atomic SQL statement (<code>UPDATE … SET x = x + 1</code>).</p>
+
+<p><strong>References:</strong> <a href="https://en.wikipedia.org/wiki/Write%E2%80%93write_conflict">https://en.wikipedia.org/wiki/Write%E2%80%93write_conflict</a></p>
+
+<h4>🟡 Read-modify-write with no transaction / optimistic lock</h4>
+
+<p><em>MEDIUM — production-ready:lost-update · confidence: low · heuristic · Code change</em></p>
+
+<p>This module reads a record and later writes it back without any transaction, <code>SELECT … FOR UPDATE</code>, or version column. Two concurrent writers can each read the old value and clobber each other — a classic lost update.</p>
+
+<p><strong>Impact:</strong> Silent data loss under concurrency: balances, counters, and inventory drift when two requests race.</p>
+
+<p><strong>Evidence:</strong></p>
+
+<ul>
+<li><code>src/lib/controls.ts:48</code></li>
+<pre><code>
+  ON CONFLICT(scope,bucket) DO UPDATE SET used = used + 1 WHERE used &lt; ?
+</code></pre>
+</ul>
+
+<p><strong>Fix:</strong></p>
+
+<p>Wrap the read-modify-write in a transaction, or use an optimistic-lock version column and retry on conflict, or push the mutation into a single atomic SQL statement (<code>UPDATE … SET x = x + 1</code>).</p>
+
+<p><strong>References:</strong> <a href="https://en.wikipedia.org/wiki/Write%E2%80%93write_conflict">https://en.wikipedia.org/wiki/Write%E2%80%93write_conflict</a></p>
+
+<h4>🟡 Read-modify-write with no transaction / optimistic lock</h4>
+
+<p><em>MEDIUM — production-ready:lost-update · confidence: low · heuristic · Code change</em></p>
+
+<p>This module reads a record and later writes it back without any transaction, <code>SELECT … FOR UPDATE</code>, or version column. Two concurrent writers can each read the old value and clobber each other — a classic lost update.</p>
+
+<p><strong>Impact:</strong> Silent data loss under concurrency: balances, counters, and inventory drift when two requests race.</p>
+
+<p><strong>Evidence:</strong></p>
+
+<ul>
+<li><code>src/lib/review.ts:52</code></li>
+<pre><code>
+  const reserved = db.query(&quot;UPDATE jobs SET rewrites = rewrites + 1 WHERE id = ? AND status =
+</code></pre>
+</ul>
+
+<p><strong>Fix:</strong></p>
+
+<p>Wrap the read-modify-write in a transaction, or use an optimistic-lock version column and retry on conflict, or push the mutation into a single atomic SQL statement (<code>UPDATE … SET x = x + 1</code>).</p>
+
+<p><strong>References:</strong> <a href="https://en.wikipedia.org/wiki/Write%E2%80%93write_conflict">https://en.wikipedia.org/wiki/Write%E2%80%93write_conflict</a></p>
+
+<p><strong>Manual review for this domain:</strong></p>
+
+<ul>
+<li>[ ] <strong>🔒 (gates launch)</strong> Double-submit every create/pay/delete action (click twice fast, and retry on a flaky network) — confirm exactly one side effect</li>
+</ul>
+<p>  - <em>why:</em> Idempotency and in-flight guards can only be confirmed by exercising the real flow.</p>
+<ul>
+<li>[ ] <strong>🔒 (gates launch)</strong> Open the app in two tabs, edit the same record in both, save both — confirm the second save is rejected or merged, not silently lost</li>
+</ul>
+<p>  - <em>why:</em> Lost-update / optimistic-lock behaviour is invisible to static analysis.</p>
+<ul>
+<li>[ ] Fire two requests that depend on ordering (e.g. create then immediately update) and confirm out-of-order arrival is handled</li>
+</ul>
+<p>  - <em>why:</em> Request ordering / race conditions surface only under real latency.</p>
+<ul>
+<li>[ ] Trigger a provider webhook twice with the same event id — confirm the second is a no-op (dedupe by event id)</li>
+</ul>
+<p>  - <em>why:</em> Webhook redelivery is guaranteed by most providers; duplicate processing corrupts state.</p>
+<ul>
+<li>[ ] Kill the process mid-write (or simulate it) and confirm no partially-written / torn state remains on restart</li>
+</ul>
+<p>  - <em>why:</em> Atomic-write / crash-consistency guarantees need a fault-injection test.</p>
+
+<hr>
+
+<h3>Visual Consistency</h3>
+
+<p><em>Ran in 0.00s with: production-ready:visual-heuristics</em></p>
+
+<p>✅ No findings in this domain.</p>
+<p><strong>Manual review for this domain:</strong></p>
+
+<ul>
+<li>[ ] <strong>🔒 (gates launch)</strong> Tab through every interactive element — confirm hover, focus-visible, active, and disabled states all exist and are distinct</li>
+</ul>
+<p>  - <em>why:</em> AI-generated components routinely ship only the default state; missing focus rings also fail accessibility.</p>
+<ul>
+<li>[ ] Shrink to 320px and grow to 1440px+ — confirm no horizontal scroll, clipped text, or overlapping elements at any breakpoint</li>
+</ul>
+<p>  - <em>why:</em> Overflow and breakpoint gaps are perceptual and not detectable by grep.</p>
+<ul>
+<li>[ ] <strong>🔒 (gates launch)</strong> Render the loading, empty, error, and success state of every data view — confirm all four are designed, not just the happy path</li>
+</ul>
+<p>  - <em>why:</em> Empty/error/loading states are the most commonly missing screens in AI-built UIs.</p>
+<ul>
+<li>[ ] Compare headings, body, and captions across 3+ screens — confirm one consistent type scale, not per-screen font sizes</li>
+</ul>
+<p>  - <em>why:</em> Typography drift is obvious to users but invisible to static checks.</p>
+<ul>
+<li>[ ] Fill fields with the longest realistic content (long names, long i18n strings, big numbers) — confirm nothing truncates or breaks layout</li>
+</ul>
+<p>  - <em>why:</em> Localization/content expansion (German, etc.) breaks fixed-width layouts.</p>
+<ul>
+<li>[ ] Spot-check that repeated components (buttons, cards, inputs) use one shared variant, not divergent one-off copies</li>
+</ul>
+<p>  - <em>why:</em> Component-variant drift accumulates silently across a codebase.</p>
+
+<hr>
+
+<h3>seo-aeo</h3>
+
+<p><em>Ran in 0.03s with: curl</em></p>
+
+<blockquote>Missing tools: <code>lighthouse</code></blockquote>
+
+<h4>🔵 No JSON-LD structured data in any template</h4>
+
+<p><em>LOW — filesystem/grep · confidence: medium · heuristic · Code change</em></p>
+
+<p>Static scan found no JSON-LD blocks. JSON-LD is not a ranking factor but helps answer engines interpret entities when it matches visible content. Confirm with a rendered fetch — some sites inject it at runtime.</p>
+
+<p><strong>Fix:</strong></p>
+
+<p>If the page represents a clear entity, add matching JSON-LD. Validate with the Rich Results Test.</p>
+
+<h4>🔵 noindex directive in template: lib/ste100page.ts</h4>
+
+<p><em>LOW — filesystem/grep · confidence: medium · heuristic · Code change</em></p>
+
+<p>A page template emits a noindex robots meta. This is correct for staging/private pages but a defect if leaked to production public routes. Confirm the template is not used for intended-public pages.</p>
+
+<p><strong>Evidence:</strong></p>
+
+<ul>
+<li><code>/opt/zouroboros/repo/Projects/reporeel-deploy/reporeel/src/lib/ste100page.ts:15</code></li>
+<pre><code>
+  &lt;meta name=&quot;robots&quot; content=&quot;noindex&quot; /&gt;
+</code></pre>
+</ul>
+
+<p><strong>Fix:</strong></p>
+
+<p>If this template renders public content, remove the noindex. If it's a staging/private template, ensure production builds don't import it.</p>
+
+<p><strong>Manual review for this domain:</strong></p>
+
+<ul>
+<li>[ ] Confirm structured data (if present) matches visible page content</li>
+</ul>
+<p>  - <em>why:</em> Schema that does not mirror visible content is a spam signal and can trigger manual action. The Rich Results Test validates syntax; only a human can confirm semantic match against the rendered page.</p>
+
+<hr>
+
+</div>
+</body>
+</html>
