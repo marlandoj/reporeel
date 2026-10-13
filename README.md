@@ -104,6 +104,7 @@ Optional environment:
 | `RENDER_DISABLED` | kill switch: reject new jobs | off |
 | `REPOREEL_DATA_DIR` | where jobs, media, and the SQLite queue live | `./data` |
 | `REPOREEL_RETENTION_DAYS` | delete finished reels older than this on the hourly sweep | 30 |
+| `HUASHU_RENDER_TIMEOUT_MIN` | Huashu Keynote render timeout, minutes (canvas capture is CPU-heavy; budget well above reel duration) | 30 |
 
 One-off CLI render, no server:
 

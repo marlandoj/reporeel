@@ -66,7 +66,8 @@ export async function renderHuashu(jobDir: string, hooks: RenderHooks & { checkC
   const proc = Bun.spawn([process.env.HUASHU_PYTHON || "python3", join(import.meta.dir, "../../scripts/render-huashu.py"), resolve(jobDir), root], { stdout: "pipe", stderr: "pipe" });
   hooks.register?.(proc);
   let timedOut = false;
-  const timer = setTimeout(() => { timedOut = true; proc.kill(); }, 12 * 60 * 1000);
+  const renderTimeoutMs = Math.max(5, Number(process.env.HUASHU_RENDER_TIMEOUT_MIN ?? 30)) * 60 * 1000;
+  const timer = setTimeout(() => { timedOut = true; proc.kill(); }, renderTimeoutMs);
   const read = async () => {
     let buffer = "";
     for await (const chunk of proc.stdout) {
