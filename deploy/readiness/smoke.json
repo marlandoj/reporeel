@@ -1,0 +1,30 @@
+[
+  {
+    "path": "/healthz",
+    "status": 200
+  },
+  {
+    "path": "/",
+    "status": 200
+  },
+  {
+    "path": "/studio",
+    "status": 200
+  },
+  {
+    "path": "/site/hermes-keynote.vtt",
+    "status": 200
+  },
+  {
+    "path": "/site/not-allowed",
+    "status": 404
+  },
+  {
+    "path": "sample video range",
+    "status": 206
+  },
+  {
+    "path": "POST /api/jobs generation disabled",
+    "status": 503
+  }
+]

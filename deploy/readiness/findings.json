@@ -1,0 +1,1898 @@
+{
+  "meta": {
+    "generatedAt": "2026-10-10T01:11:30.145Z",
+    "auditVersion": "1.0.0",
+    "config": {
+      "repoPath": "/opt/zouroboros/repo/Projects/reporeel-deploy/reporeel",
+      "outDir": "/opt/zouroboros/repo/Projects/reporeel-deploy/audit",
+      "format": "all",
+      "appName": "RepoReel",
+      "appPurpose": "Repository movie showcase and creation studio",
+      "surfaces": {
+        "userData": false,
+        "uploads": false,
+        "admin": false,
+        "ai": false,
+        "payments": false
+      },
+      "godmode": false,
+      "manualVerified": false,
+      "techStack": [
+        "node",
+        "hono"
+      ]
+    },
+    "durationMs": 395
+  },
+  "verdict": "do-not-launch",
+  "verdictReason": "4 hard blocker(s) and/or critical finding(s) detected",
+  "scores": {
+    "critical": 4,
+    "high": 6,
+    "medium": 8,
+    "low": 15,
+    "info": 0,
+    "total": 33
+  },
+  "hardBlockers": [
+    {
+      "id": "db.sql-concat.src/lib/queue.ts.38",
+      "domain": "database",
+      "severity": "critical",
+      "hardBlocker": true,
+      "title": "SQL query built via string concatenation/interpolation",
+      "description": "Concatenating user input into SQL is the textbook SQL-injection vector.",
+      "evidence": [
+        {
+          "file": "src/lib/queue.ts",
+          "line": 38,
+          "snippet": "query(`SELECT id FROM jobs WHERE canonical = ? AND variant = ? AND status IN (${PENDING_SQL}) LIMIT 1`"
+        }
+      ],
+      "remediation": "Use parameterised queries (`?` / `$1` placeholders) or an ORM. Never concatenate untrusted input into SQL.",
+      "source": "production-ready:sql-concat-grep",
+      "references": [
+        "https://owasp.org/Top10/A03_2021-Injection/",
+        "https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html"
+      ],
+      "triage": {
+        "decision": "kept",
+        "reproduce": {
+          "fpSignal": null
+        },
+        "originalSeverity": "critical"
+      }
+    },
+    {
+      "id": "db.sql-concat.src/lib/queue.ts.44",
+      "domain": "database",
+      "severity": "critical",
+      "hardBlocker": true,
+      "title": "SQL query built via string concatenation/interpolation",
+      "description": "Concatenating user input into SQL is the textbook SQL-injection vector.",
+      "evidence": [
+        {
+          "file": "src/lib/queue.ts",
+          "line": 44,
+          "snippet": "query(`SELECT COUNT(*) as n FROM jobs WHERE status IN (${PENDING_SQL})`"
+        }
+      ],
+      "remediation": "Use parameterised queries (`?` / `$1` placeholders) or an ORM. Never concatenate untrusted input into SQL.",
+      "source": "production-ready:sql-concat-grep",
+      "references": [
+        "https://owasp.org/Top10/A03_2021-Injection/",
+        "https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html"
+      ],
+      "triage": {
+        "decision": "kept",
+        "reproduce": {
+          "fpSignal": null
+        },
+        "originalSeverity": "critical"
+      }
+    },
+    {
+      "id": "db.sql-concat.src/lib/queue.ts.58",
+      "domain": "database",
+      "severity": "critical",
+      "hardBlocker": true,
+      "title": "SQL query built via string concatenation/interpolation",
+      "description": "Concatenating user input into SQL is the textbook SQL-injection vector.",
+      "evidence": [
+        {
+          "file": "src/lib/queue.ts",
+          "line": 58,
+          "snippet": "query(`SELECT COUNT(*) as n FROM jobs WHERE status IN (${ACTIVE_SQL}) AND id != ? AND (status != 'queued' OR created_at < ?)`"
+        }
+      ],
+      "remediation": "Use parameterised queries (`?` / `$1` placeholders) or an ORM. Never concatenate untrusted input into SQL.",
+      "source": "production-ready:sql-concat-grep",
+      "references": [
+        "https://owasp.org/Top10/A03_2021-Injection/",
+        "https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html"
+      ],
+      "triage": {
+        "decision": "kept",
+        "reproduce": {
+          "fpSignal": null
+        },
+        "originalSeverity": "critical"
+      }
+    },
+    {
+      "id": "db.sql-concat.src/lib/queue.ts.64",
+      "domain": "database",
+      "severity": "critical",
+      "hardBlocker": true,
+      "title": "SQL query built via string concatenation/interpolation",
+      "description": "Concatenating user input into SQL is the textbook SQL-injection vector.",
+      "evidence": [
+        {
+          "file": "src/lib/queue.ts",
+          "line": 64,
+          "snippet": "query(`SELECT COUNT(*) as n FROM jobs WHERE status IN (${ACTIVE_SQL})`"
+        }
+      ],
+      "remediation": "Use parameterised queries (`?` / `$1` placeholders) or an ORM. Never concatenate untrusted input into SQL.",
+      "source": "production-ready:sql-concat-grep",
+      "references": [
+        "https://owasp.org/Top10/A03_2021-Injection/",
+        "https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html"
+      ],
+      "triage": {
+        "decision": "kept",
+        "reproduce": {
+          "fpSignal": null
+        },
+        "originalSeverity": "critical"
+      }
+    }
+  ],
+  "results": [
+    {
+      "domain": "legal",
+      "ranAt": "2026-10-10T01:11:29.786Z",
+      "durationMs": 23,
+      "toolsUsed": [
+        "production-ready:repo-grep"
+      ],
+      "toolsMissing": [],
+      "findings": [
+        {
+          "id": "legal.missing-privacy-policy",
+          "domain": "legal",
+          "severity": "medium",
+          "title": "No privacy policy page found",
+          "description": "No file or route resembling a privacy policy was detected. Apps that collect user data need a published, accessible privacy policy.",
+          "remediation": "Add `/privacy` (or similar) describing what data you collect, why, how long it's retained, third parties it's shared with, and how users can export/delete it.",
+          "source": "production-ready:repo-grep",
+          "references": [
+            "https://gdpr.eu/article-13-notice/",
+            "https://oag.ca.gov/privacy/ccpa"
+          ],
+          "triage": {
+            "decision": "kept",
+            "reproduce": {
+              "fpSignal": null
+            },
+            "originalSeverity": "medium"
+          }
+        },
+        {
+          "id": "legal.missing-terms",
+          "domain": "legal",
+          "severity": "medium",
+          "title": "No terms of service found",
+          "description": "No file or route resembling Terms of Service was detected. Public-facing apps should publish ToS limiting liability and defining acceptable use.",
+          "remediation": "Add `/terms` covering acceptable use, liability disclaimers, dispute resolution, and termination conditions.",
+          "source": "production-ready:repo-grep",
+          "triage": {
+            "decision": "kept",
+            "reproduce": {
+              "fpSignal": null
+            },
+            "originalSeverity": "medium"
+          }
+        }
+      ],
+      "manualChecklist": [
+        {
+          "item": "List every third party that receives user data (analytics, error reporting, LLM providers, payment processors)",
+          "rationale": "Required for GDPR/CCPA disclosure and Data Processing Agreements."
+        },
+        {
+          "item": "Define data retention windows per data type",
+          "rationale": "Indefinite retention is hostile to user privacy and increases breach blast radius."
+        },
+        {
+          "item": "Verify Data Processing Agreement (DPA) signed with each sub-processor",
+          "rationale": "GDPR Article 28 requires DPAs with processors handling personal data."
+        },
+        {
+          "item": "Cookie banner / consent management is wired (if EU/UK users)",
+          "rationale": "GDPR + ePrivacy Directive require informed consent for non-essential cookies."
+        },
+        {
+          "item": "Privacy policy lists all processors + retention windows + lawful basis",
+          "rationale": "Plain-language disclosure is legally required, not optional."
+        }
+      ]
+    },
+    {
+      "domain": "secrets",
+      "ranAt": "2026-10-10T01:11:29.868Z",
+      "durationMs": 80,
+      "toolsUsed": [],
+      "toolsMissing": [
+        "gitleaks",
+        "trufflehog"
+      ],
+      "findings": [],
+      "manualChecklist": [
+        {
+          "item": "Confirm publishable/anon keys are documented as intentionally-public by the provider",
+          "rationale": "Some 'public' keys are safe to expose (Stripe publishable, Supabase anon); others are not."
+        },
+        {
+          "item": "Verify credential rotation cadence is defined and tested",
+          "rationale": "Even unleaked credentials should be rotated periodically."
+        },
+        {
+          "item": "Check provider audit logs for unexpected access",
+          "rationale": "Past leaks may have been exploited."
+        }
+      ]
+    },
+    {
+      "domain": "authentication",
+      "ranAt": "2026-10-10T01:11:29.894Z",
+      "durationMs": 24,
+      "toolsUsed": [],
+      "toolsMissing": [
+        "semgrep"
+      ],
+      "findings": [],
+      "manualChecklist": [
+        {
+          "item": "Test ownership boundaries — sign in as user A, try to access user B's resources via direct URL",
+          "rationale": "BOLA / IDOR is the #1 API vuln per OWASP API Top 10 2023."
+        },
+        {
+          "item": "Verify MFA is available (and required for admin)",
+          "rationale": "Compromised passwords are the most common breach vector."
+        },
+        {
+          "item": "Confirm session timeout + inactivity logout exists",
+          "rationale": "Long-lived sessions on shared/public devices are a leak path."
+        },
+        {
+          "item": "Check rate limit on login + password reset endpoints",
+          "rationale": "Credential stuffing & enumeration require throttling."
+        }
+      ]
+    },
+    {
+      "domain": "api-safety",
+      "ranAt": "2026-10-10T01:11:29.930Z",
+      "durationMs": 35,
+      "toolsUsed": [
+        "production-ready:repo-grep"
+      ],
+      "toolsMissing": [],
+      "findings": [
+        {
+          "id": "api.no-rate-limit",
+          "domain": "api-safety",
+          "severity": "high",
+          "title": "No rate-limiting middleware detected",
+          "description": "Detected 15 API handlers but no rate-limiting library is imported anywhere. Public APIs without rate limits invite credential stuffing, scraping, and billing abuse.",
+          "remediation": "Add a rate limiter at the edge or middleware layer (express-rate-limit, @upstash/ratelimit, or your platform's WAF). Limit per IP AND per user. Apply stricter limits to auth/password-reset routes.",
+          "source": "production-ready:rate-limit-grep",
+          "references": [
+            "https://owasp.org/API-Security/editions/2023/en/0xa4-unrestricted-resource-consumption/"
+          ],
+          "triage": {
+            "decision": "kept",
+            "reproduce": {
+              "fpSignal": null
+            },
+            "originalSeverity": "high"
+          }
+        }
+      ],
+      "manualChecklist": [
+        {
+          "item": "Verify every state-changing endpoint requires POST/PUT/PATCH/DELETE (not GET)",
+          "rationale": "GET requests are logged in browser history, referrer headers, and CDN logs."
+        },
+        {
+          "item": "Confirm OpenAPI/Swagger spec exists and matches implementation",
+          "rationale": "Drift between docs and code hides shadow endpoints."
+        },
+        {
+          "item": "Test rate limits return 429 with a Retry-After header",
+          "rationale": "Some implementations silently drop; clients need feedback."
+        }
+      ]
+    },
+    {
+      "domain": "owasp",
+      "ranAt": "2026-10-10T01:11:29.939Z",
+      "durationMs": 6,
+      "toolsUsed": [],
+      "toolsMissing": [
+        "semgrep",
+        "osv-scanner"
+      ],
+      "findings": [],
+      "manualChecklist": [
+        {
+          "item": "Threat-model the auth boundary: what does a malicious authenticated user gain access to?",
+          "rationale": "OWASP A04 (Insecure Design) cannot be detected by scanners — needs human judgement."
+        },
+        {
+          "item": "Review every dependency added in the last 6 months for typosquatting / abandoned-maintainer risk",
+          "rationale": "Supply-chain attacks (A08) target recently-added or unmaintained packages."
+        },
+        {
+          "item": "Run a real DAST (ZAP full scan) at least once before launch and after every major release",
+          "rationale": "Static analysis cannot replicate exploit paths."
+        }
+      ]
+    },
+    {
+      "domain": "abuse-rate",
+      "ranAt": "2026-10-10T01:11:29.961Z",
+      "durationMs": 21,
+      "toolsUsed": [
+        "production-ready:abuse-grep"
+      ],
+      "toolsMissing": [],
+      "findings": [],
+      "manualChecklist": [
+        {
+          "item": "Confirm a per-tenant daily/monthly cost cap is enforced at the application layer",
+          "rationale": "Rate limits alone don't prevent a single bad actor from draining a budget within their quota."
+        },
+        {
+          "item": "Bot/CAPTCHA on signup + login + 'forgot password'",
+          "rationale": "Most abuse arrives via cheap-account creation."
+        },
+        {
+          "item": "Billing-anomaly alert wired to ops channel",
+          "rationale": "Catch runaway costs in minutes not days."
+        }
+      ]
+    },
+    {
+      "domain": "frontend",
+      "ranAt": "2026-10-10T01:11:29.973Z",
+      "durationMs": 11,
+      "toolsUsed": [
+        "production-ready:bundle-scan"
+      ],
+      "toolsMissing": [],
+      "findings": [
+        {
+          "id": "frontend.internal-url.tests/controls-runner.ts.47",
+          "domain": "frontend",
+          "severity": "low",
+          "title": "Internal URL / IP hardcoded in source",
+          "description": "Hard-coded internal hostnames or IPs end up in the production bundle and may reveal architecture details to attackers.",
+          "evidence": [
+            {
+              "file": "tests/controls-runner.ts",
+              "line": 47,
+              "snippet": "process.env.REPOREEL_TRUSTED_PROXIES = \"127.0.0.1\";"
+            }
+          ],
+          "remediation": "Move URLs to environment-driven config. Verify the build pipeline strips dev-only paths.",
+          "source": "production-ready:internal-url-grep",
+          "triage": {
+            "decision": "kept",
+            "reproduce": {
+              "fpSignal": null
+            },
+            "originalSeverity": "low"
+          }
+        },
+        {
+          "id": "frontend.internal-url.tests/controls-runner.ts.48",
+          "domain": "frontend",
+          "severity": "low",
+          "title": "Internal URL / IP hardcoded in source",
+          "description": "Hard-coded internal hostnames or IPs end up in the production bundle and may reveal architecture details to attackers.",
+          "evidence": [
+            {
+              "file": "tests/controls-runner.ts",
+              "line": 48,
+              "snippet": "assert.equal(visitorIp(\"127.0.0.1\", headers), \"203.0.113.9\");"
+            }
+          ],
+          "remediation": "Move URLs to environment-driven config. Verify the build pipeline strips dev-only paths.",
+          "source": "production-ready:internal-url-grep",
+          "triage": {
+            "decision": "kept",
+            "reproduce": {
+              "fpSignal": null
+            },
+            "originalSeverity": "low"
+          }
+        },
+        {
+          "id": "frontend.internal-url.tests/controls-runner.ts.49",
+          "domain": "frontend",
+          "severity": "low",
+          "title": "Internal URL / IP hardcoded in source",
+          "description": "Hard-coded internal hostnames or IPs end up in the production bundle and may reveal architecture details to attackers.",
+          "evidence": [
+            {
+              "file": "tests/controls-runner.ts",
+              "line": 49,
+              "snippet": "assert.equal(visitorIp(\"::ffff:127.0.0.1\", headers), \"203.0.113.9\");"
+            }
+          ],
+          "remediation": "Move URLs to environment-driven config. Verify the build pipeline strips dev-only paths.",
+          "source": "production-ready:internal-url-grep",
+          "triage": {
+            "decision": "kept",
+            "reproduce": {
+              "fpSignal": null
+            },
+            "originalSeverity": "low"
+          }
+        },
+        {
+          "id": "frontend.internal-url.tests/controls-runner.ts.50",
+          "domain": "frontend",
+          "severity": "low",
+          "title": "Internal URL / IP hardcoded in source",
+          "description": "Hard-coded internal hostnames or IPs end up in the production bundle and may reveal architecture details to attackers.",
+          "evidence": [
+            {
+              "file": "tests/controls-runner.ts",
+              "line": 50,
+              "snippet": "assert.equal(visitorIp(\"127.0.0.1\", new Headers({ \"x-real-ip\": \"a,b\" })), \"127.0.0.1\");"
+            }
+          ],
+          "remediation": "Move URLs to environment-driven config. Verify the build pipeline strips dev-only paths.",
+          "source": "production-ready:internal-url-grep",
+          "triage": {
+            "decision": "kept",
+            "reproduce": {
+              "fpSignal": null
+            },
+            "originalSeverity": "low"
+          }
+        },
+        {
+          "id": "frontend.internal-url.tests/controls-runner.ts.123",
+          "domain": "frontend",
+          "severity": "low",
+          "title": "Internal URL / IP hardcoded in source",
+          "description": "Hard-coded internal hostnames or IPs end up in the production bundle and may reveal architecture details to attackers.",
+          "evidence": [
+            {
+              "file": "tests/controls-runner.ts",
+              "line": 123,
+              "snippet": "return app.fetch(new Request(\"http://localhost\" + path, {"
+            }
+          ],
+          "remediation": "Move URLs to environment-driven config. Verify the build pipeline strips dev-only paths.",
+          "source": "production-ready:internal-url-grep",
+          "triage": {
+            "decision": "kept",
+            "reproduce": {
+              "fpSignal": null
+            },
+            "originalSeverity": "low"
+          }
+        }
+      ],
+      "manualChecklist": [
+        {
+          "item": "Open DevTools → Network tab on the production app — is any request going to a dev/staging URL?",
+          "rationale": "AI-generated code commonly leaves mixed-environment URLs after a copy-paste."
+        },
+        {
+          "item": "Check the bundle for comments / console.log statements",
+          "rationale": "Debug output may leak request/response shapes and PII."
+        }
+      ]
+    },
+    {
+      "domain": "logging",
+      "ranAt": "2026-10-10T01:11:29.999Z",
+      "durationMs": 25,
+      "toolsUsed": [
+        "production-ready:logger-grep"
+      ],
+      "toolsMissing": [],
+      "findings": [
+        {
+          "id": "logging.no-structured-logger",
+          "domain": "logging",
+          "severity": "medium",
+          "title": "No structured logger detected",
+          "description": "Unstructured logs are harder to search, redact, and rate-limit. They cost more in centralized log stores.",
+          "remediation": "Adopt pino (Node), structlog (Python), zap/slog (Go). Configure built-in PII redaction. Tag every log with request_id, user_id (hashed), tenant_id.",
+          "source": "production-ready:logger-grep",
+          "triage": {
+            "decision": "kept",
+            "reproduce": {
+              "fpSignal": null
+            },
+            "originalSeverity": "medium"
+          }
+        },
+        {
+          "id": "logging.no-error-tracker",
+          "domain": "logging",
+          "severity": "medium",
+          "title": "No error tracker integration detected",
+          "description": "Unobserved errors are unfixed errors. Without Sentry/Bugsnag/Datadog, you find out about prod issues from angry users.",
+          "remediation": "Wire Sentry (or equivalent) on both client and server. Set release/environment tags. Configure source-map upload.",
+          "source": "production-ready:tracker-grep",
+          "references": [
+            "https://docs.sentry.io/"
+          ],
+          "triage": {
+            "decision": "kept",
+            "reproduce": {
+              "fpSignal": null
+            },
+            "originalSeverity": "medium"
+          }
+        }
+      ],
+      "manualChecklist": [
+        {
+          "item": "Verify centralized logs are searchable for at least 7 days",
+          "rationale": "Incidents are often noticed after they end; you need retention to retro."
+        },
+        {
+          "item": "Confirm uptime monitor with on-call paging (StatusCake / BetterStack / Pingdom)",
+          "rationale": "External probe catches what your internal metrics can't."
+        },
+        {
+          "item": "Per-tenant audit trail for: auth events, permission changes, admin actions, data exports",
+          "rationale": "Required for SOC 2 + GDPR + breach forensics."
+        }
+      ]
+    },
+    {
+      "domain": "accessibility",
+      "ranAt": "2026-10-10T01:11:30.002Z",
+      "durationMs": 2,
+      "toolsUsed": [],
+      "toolsMissing": [],
+      "findings": [],
+      "manualChecklist": [
+        {
+          "item": "Keyboard-only pass: can you reach every interactive control with Tab? Operate it with Enter/Space?",
+          "rationale": "Automated tools catch ~30–40% of WCAG issues; keyboard ops can't be inferred from DOM."
+        },
+        {
+          "item": "Screen reader smoke test (VoiceOver / NVDA): does the announcement order make sense?",
+          "rationale": "Visually-ordered DOM can confuse screen readers."
+        },
+        {
+          "item": "Reduced motion preference is honored",
+          "rationale": "WCAG 2.3.3 (Animation from Interactions) and motion-disorder users."
+        }
+      ]
+    },
+    {
+      "domain": "performance",
+      "ranAt": "2026-10-10T01:11:30.006Z",
+      "durationMs": 3,
+      "toolsUsed": [],
+      "toolsMissing": [],
+      "findings": [],
+      "manualChecklist": [
+        {
+          "item": "Tested rollback procedure in staging within last 30 days",
+          "rationale": "An untested rollback is a hope, not a plan."
+        },
+        {
+          "item": "Backups exist AND restore has been tested in last 90 days",
+          "rationale": "Schrödinger's backup: simultaneously exists and doesn't until verified."
+        },
+        {
+          "item": "Capacity tested at ≥ 2× projected peak traffic",
+          "rationale": "Launch traffic spikes are bigger than steady state."
+        },
+        {
+          "item": "Per-route SLOs defined with error budget tracking",
+          "rationale": "Reliability targets without budgets become aspirations."
+        }
+      ]
+    },
+    {
+      "domain": "payments",
+      "ranAt": "2026-10-10T01:11:30.012Z",
+      "durationMs": 5,
+      "toolsUsed": [],
+      "toolsMissing": [],
+      "findings": [],
+      "manualChecklist": [
+        {
+          "item": "Confirm app has no money-handling surface",
+          "rationale": "If payments appear later, re-run this check."
+        }
+      ]
+    },
+    {
+      "domain": "file-uploads",
+      "ranAt": "2026-10-10T01:11:30.020Z",
+      "durationMs": 7,
+      "toolsUsed": [],
+      "toolsMissing": [],
+      "findings": [],
+      "manualChecklist": [
+        {
+          "item": "No upload code detected — confirm app does not accept user uploads.",
+          "rationale": "Re-run when uploads are added."
+        }
+      ]
+    },
+    {
+      "domain": "database",
+      "ranAt": "2026-10-10T01:11:30.035Z",
+      "durationMs": 14,
+      "toolsUsed": [
+        "production-ready:db-grep"
+      ],
+      "toolsMissing": [],
+      "findings": [
+        {
+          "id": "db.sql-concat.src/lib/queue.ts.38",
+          "domain": "database",
+          "severity": "critical",
+          "hardBlocker": true,
+          "title": "SQL query built via string concatenation/interpolation",
+          "description": "Concatenating user input into SQL is the textbook SQL-injection vector.",
+          "evidence": [
+            {
+              "file": "src/lib/queue.ts",
+              "line": 38,
+              "snippet": "query(`SELECT id FROM jobs WHERE canonical = ? AND variant = ? AND status IN (${PENDING_SQL}) LIMIT 1`"
+            }
+          ],
+          "remediation": "Use parameterised queries (`?` / `$1` placeholders) or an ORM. Never concatenate untrusted input into SQL.",
+          "source": "production-ready:sql-concat-grep",
+          "references": [
+            "https://owasp.org/Top10/A03_2021-Injection/",
+            "https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html"
+          ],
+          "triage": {
+            "decision": "kept",
+            "reproduce": {
+              "fpSignal": null
+            },
+            "originalSeverity": "critical"
+          }
+        },
+        {
+          "id": "db.sql-concat.src/lib/queue.ts.44",
+          "domain": "database",
+          "severity": "critical",
+          "hardBlocker": true,
+          "title": "SQL query built via string concatenation/interpolation",
+          "description": "Concatenating user input into SQL is the textbook SQL-injection vector.",
+          "evidence": [
+            {
+              "file": "src/lib/queue.ts",
+              "line": 44,
+              "snippet": "query(`SELECT COUNT(*) as n FROM jobs WHERE status IN (${PENDING_SQL})`"
+            }
+          ],
+          "remediation": "Use parameterised queries (`?` / `$1` placeholders) or an ORM. Never concatenate untrusted input into SQL.",
+          "source": "production-ready:sql-concat-grep",
+          "references": [
+            "https://owasp.org/Top10/A03_2021-Injection/",
+            "https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html"
+          ],
+          "triage": {
+            "decision": "kept",
+            "reproduce": {
+              "fpSignal": null
+            },
+            "originalSeverity": "critical"
+          }
+        },
+        {
+          "id": "db.sql-concat.src/lib/queue.ts.58",
+          "domain": "database",
+          "severity": "critical",
+          "hardBlocker": true,
+          "title": "SQL query built via string concatenation/interpolation",
+          "description": "Concatenating user input into SQL is the textbook SQL-injection vector.",
+          "evidence": [
+            {
+              "file": "src/lib/queue.ts",
+              "line": 58,
+              "snippet": "query(`SELECT COUNT(*) as n FROM jobs WHERE status IN (${ACTIVE_SQL}) AND id != ? AND (status != 'queued' OR created_at < ?)`"
+            }
+          ],
+          "remediation": "Use parameterised queries (`?` / `$1` placeholders) or an ORM. Never concatenate untrusted input into SQL.",
+          "source": "production-ready:sql-concat-grep",
+          "references": [
+            "https://owasp.org/Top10/A03_2021-Injection/",
+            "https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html"
+          ],
+          "triage": {
+            "decision": "kept",
+            "reproduce": {
+              "fpSignal": null
+            },
+            "originalSeverity": "critical"
+          }
+        },
+        {
+          "id": "db.sql-concat.src/lib/queue.ts.64",
+          "domain": "database",
+          "severity": "critical",
+          "hardBlocker": true,
+          "title": "SQL query built via string concatenation/interpolation",
+          "description": "Concatenating user input into SQL is the textbook SQL-injection vector.",
+          "evidence": [
+            {
+              "file": "src/lib/queue.ts",
+              "line": 64,
+              "snippet": "query(`SELECT COUNT(*) as n FROM jobs WHERE status IN (${ACTIVE_SQL})`"
+            }
+          ],
+          "remediation": "Use parameterised queries (`?` / `$1` placeholders) or an ORM. Never concatenate untrusted input into SQL.",
+          "source": "production-ready:sql-concat-grep",
+          "references": [
+            "https://owasp.org/Top10/A03_2021-Injection/",
+            "https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html"
+          ],
+          "triage": {
+            "decision": "kept",
+            "reproduce": {
+              "fpSignal": null
+            },
+            "originalSeverity": "critical"
+          }
+        },
+        {
+          "id": "db.tenant-scoping",
+          "domain": "database",
+          "severity": "medium",
+          "title": "10 queries appear to not filter by user/tenant column",
+          "description": "Heuristic — queries without user_id/tenant_id/organization_id filters may be returning cross-tenant data. Review each.",
+          "evidence": [
+            {
+              "file": "tests/controls-runner.ts",
+              "line": 69,
+              "snippet": "const steUsed = (db.query(\"SELECT used FROM usage_limits WHERE scope='ste'\").get() as { used: number }).used;"
+            },
+            {
+              "file": "tests/controls-runner.ts",
+              "line": 188,
+              "snippet": "db.run(\"DELETE FROM usage_limits WHERE scope='ai'\");"
+            },
+            {
+              "file": "tests/controls-runner.ts",
+              "line": 200,
+              "snippet": "db.run(\"DELETE FROM usage_limits WHERE scope='ai'\");"
+            },
+            {
+              "file": "tests/controls-runner.ts",
+              "line": 220,
+              "snippet": "db.run(\"DELETE FROM usage_limits WHERE scope='ai'\");"
+            },
+            {
+              "file": "tests/controls-runner.ts",
+              "line": 232,
+              "snippet": "assert.equal((db.query(\"SELECT used FROM usage_limits WHERE scope='ai'\").get() as { used: number }).used, 1);"
+            }
+          ],
+          "remediation": "Every query on user-owned tables must filter by the requesting user/tenant. Consider a query-builder middleware that enforces this for you.",
+          "source": "production-ready:tenant-scope-grep",
+          "references": [
+            "https://owasp.org/API-Security/editions/2023/en/0xa1-broken-object-level-authorization/"
+          ],
+          "triage": {
+            "decision": "kept",
+            "reproduce": {
+              "fpSignal": null
+            },
+            "originalSeverity": "medium"
+          }
+        }
+      ],
+      "manualChecklist": [
+        {
+          "item": "Test backup restore in a scratch environment — actually restore, don't just dump",
+          "rationale": "Backup files aren't backups; restored databases are."
+        },
+        {
+          "item": "Database admin password rotation policy + last rotation date",
+          "rationale": "Long-lived admin creds are a high-value target."
+        },
+        {
+          "item": "Audit log captures: schema changes, role grants, admin queries, data exports",
+          "rationale": "Required for SOC 2 + breach forensics."
+        },
+        {
+          "item": "Confirm migrations are idempotent and tested in CI",
+          "rationale": "AI-generated migrations frequently aren't reversible."
+        }
+      ]
+    },
+    {
+      "domain": "ai-code",
+      "ranAt": "2026-10-10T01:11:30.075Z",
+      "durationMs": 39,
+      "toolsUsed": [
+        "production-ready:ai-heuristics"
+      ],
+      "toolsMissing": [],
+      "findings": [
+        {
+          "id": "ai-code.silent-catch-js.src/lib/ui.ts.309",
+          "domain": "ai-code",
+          "severity": "high",
+          "title": "Empty `catch` swallows errors",
+          "description": "JS/TS catch block is empty or comment-only — errors disappear.",
+          "evidence": [
+            {
+              "file": "src/lib/ui.ts",
+              "line": 309,
+              "snippet": "} catch (e) {}"
+            }
+          ],
+          "remediation": "Log the error and either rethrow or handle it explicitly.",
+          "source": "production-ready:ai-silent-catch-js",
+          "triage": {
+            "decision": "kept",
+            "reproduce": {
+              "fpSignal": null
+            },
+            "originalSeverity": "high"
+          }
+        },
+        {
+          "id": "ai-code.silent-catch-js.src/lib/ui.ts.310",
+          "domain": "ai-code",
+          "severity": "high",
+          "title": "Empty `catch` swallows errors",
+          "description": "JS/TS catch block is empty or comment-only — errors disappear.",
+          "evidence": [
+            {
+              "file": "src/lib/ui.ts",
+              "line": 310,
+              "snippet": "opts.renderer, style: opts.style, plain: opts.plain })); } catch (e) {} }"
+            }
+          ],
+          "remediation": "Log the error and either rethrow or handle it explicitly.",
+          "source": "production-ready:ai-silent-catch-js",
+          "triage": {
+            "decision": "kept",
+            "reproduce": {
+              "fpSignal": null
+            },
+            "originalSeverity": "high"
+          }
+        },
+        {
+          "id": "ai-code.silent-catch-js.src/lib/ui.ts.323",
+          "domain": "ai-code",
+          "severity": "high",
+          "title": "Empty `catch` swallows errors",
+          "description": "JS/TS catch block is empty or comment-only — errors disappear.",
+          "evidence": [
+            {
+              "file": "src/lib/ui.ts",
+              "line": 323,
+              "snippet": "id, t) { try { localStorage.setItem(\"rr-owner-\" + id, t); } catch (e) {} }"
+            }
+          ],
+          "remediation": "Log the error and either rethrow or handle it explicitly.",
+          "source": "production-ready:ai-silent-catch-js",
+          "triage": {
+            "decision": "kept",
+            "reproduce": {
+              "fpSignal": null
+            },
+            "originalSeverity": "high"
+          }
+        },
+        {
+          "id": "ai-code.silent-catch-js.src/lib/ui.ts.669",
+          "domain": "ai-code",
+          "severity": "high",
+          "title": "Empty `catch` swallows errors",
+          "description": "JS/TS catch block is empty or comment-only — errors disappear.",
+          "evidence": [
+            {
+              "file": "src/lib/ui.ts",
+              "line": 669,
+              "snippet": "}).catch(function () {});"
+            }
+          ],
+          "remediation": "Log the error and either rethrow or handle it explicitly.",
+          "source": "production-ready:ai-silent-catch-js",
+          "triage": {
+            "decision": "kept",
+            "reproduce": {
+              "fpSignal": null
+            },
+            "originalSeverity": "high"
+          }
+        },
+        {
+          "id": "ai-code.silent-catch-js.src/lib/ui.ts.721",
+          "domain": "ai-code",
+          "severity": "high",
+          "title": "Empty `catch` swallows errors",
+          "description": "JS/TS catch block is empty or comment-only — errors disappear.",
+          "evidence": [
+            {
+              "file": "src/lib/ui.ts",
+              "line": 721,
+              "snippet": "}).catch(function () {});"
+            }
+          ],
+          "remediation": "Log the error and either rethrow or handle it explicitly.",
+          "source": "production-ready:ai-silent-catch-js",
+          "triage": {
+            "decision": "kept",
+            "reproduce": {
+              "fpSignal": null
+            },
+            "originalSeverity": "high"
+          }
+        },
+        {
+          "id": "ai-code.type-suppression.tests/controls-runner.ts.166",
+          "domain": "ai-code",
+          "severity": "low",
+          "title": "Type-checker suppression",
+          "description": "`as any` / `@ts-ignore` / `# type: ignore` silences the type checker without fixing the underlying issue.",
+          "evidence": [
+            {
+              "file": "tests/controls-runner.ts",
+              "line": 166,
+              "snippet": "assert.throws(() => approveJob(getJob(reel.id)!), e => (e as any).status === 429);"
+            }
+          ],
+          "remediation": "Either fix the underlying type problem or add a justification comment with an issue number to track removal.",
+          "source": "production-ready:ai-type-suppression",
+          "triage": {
+            "decision": "kept",
+            "reproduce": {
+              "fpSignal": null
+            },
+            "originalSeverity": "low"
+          }
+        },
+        {
+          "id": "ai-code.type-suppression.tests/controls-runner.ts.176",
+          "domain": "ai-code",
+          "severity": "low",
+          "title": "Type-checker suppression",
+          "description": "`as any` / `@ts-ignore` / `# type: ignore` silences the type checker without fixing the underlying issue.",
+          "evidence": [
+            {
+              "file": "tests/controls-runner.ts",
+              "line": 176,
+              "snippet": "it assert.rejects(() => rewriteScene(stale, 1, \"\"), e => (e as any).status === 409);"
+            }
+          ],
+          "remediation": "Either fix the underlying type problem or add a justification comment with an issue number to track removal.",
+          "source": "production-ready:ai-type-suppression",
+          "triage": {
+            "decision": "kept",
+            "reproduce": {
+              "fpSignal": null
+            },
+            "originalSeverity": "low"
+          }
+        },
+        {
+          "id": "ai-code.type-suppression.tests/controls-runner.ts.177",
+          "domain": "ai-code",
+          "severity": "low",
+          "title": "Type-checker suppression",
+          "description": "`as any` / `@ts-ignore` / `# type: ignore` silences the type checker without fixing the underlying issue.",
+          "evidence": [
+            {
+              "file": "tests/controls-runner.ts",
+              "line": 177,
+              "snippet": "assert.throws(() => saveScript(stale, script), e => (e as any).status === 409);"
+            }
+          ],
+          "remediation": "Either fix the underlying type problem or add a justification comment with an issue number to track removal.",
+          "source": "production-ready:ai-type-suppression",
+          "triage": {
+            "decision": "kept",
+            "reproduce": {
+              "fpSignal": null
+            },
+            "originalSeverity": "low"
+          }
+        },
+        {
+          "id": "ai-code.type-suppression.tests/controls-runner.ts.178",
+          "domain": "ai-code",
+          "severity": "low",
+          "title": "Type-checker suppression",
+          "description": "`as any` / `@ts-ignore` / `# type: ignore` silences the type checker without fixing the underlying issue.",
+          "evidence": [
+            {
+              "file": "tests/controls-runner.ts",
+              "line": 178,
+              "snippet": "assert.throws(() => approveJob(stale), e => (e as any).status === 409);"
+            }
+          ],
+          "remediation": "Either fix the underlying type problem or add a justification comment with an issue number to track removal.",
+          "source": "production-ready:ai-type-suppression",
+          "triage": {
+            "decision": "kept",
+            "reproduce": {
+              "fpSignal": null
+            },
+            "originalSeverity": "low"
+          }
+        },
+        {
+          "id": "ai-code.type-suppression.tests/controls-runner.ts.184",
+          "domain": "ai-code",
+          "severity": "low",
+          "title": "Type-checker suppression",
+          "description": "`as any` / `@ts-ignore` / `# type: ignore` silences the type checker without fixing the underlying issue.",
+          "evidence": [
+            {
+              "file": "tests/controls-runner.ts",
+              "line": 184,
+              "snippet": "it assert.rejects(() => rewriteScene(stale, 1, \"\"), e => (e as any).status === 429);"
+            }
+          ],
+          "remediation": "Either fix the underlying type problem or add a justification comment with an issue number to track removal.",
+          "source": "production-ready:ai-type-suppression",
+          "triage": {
+            "decision": "kept",
+            "reproduce": {
+              "fpSignal": null
+            },
+            "originalSeverity": "low"
+          }
+        },
+        {
+          "id": "ai-code.type-suppression.tests/controls-runner.ts.192",
+          "domain": "ai-code",
+          "severity": "low",
+          "title": "Type-checker suppression",
+          "description": "`as any` / `@ts-ignore` / `# type: ignore` silences the type checker without fixing the underlying issue.",
+          "evidence": [
+            {
+              "file": "tests/controls-runner.ts",
+              "line": 192,
+              "snippet": "(() => generateScript(facts, normalizeOptions({})), e => (e as any).status === 429);"
+            }
+          ],
+          "remediation": "Either fix the underlying type problem or add a justification comment with an issue number to track removal.",
+          "source": "production-ready:ai-type-suppression",
+          "triage": {
+            "decision": "kept",
+            "reproduce": {
+              "fpSignal": null
+            },
+            "originalSeverity": "low"
+          }
+        },
+        {
+          "id": "ai-code.type-suppression.tests/controls-runner.ts.196",
+          "domain": "ai-code",
+          "severity": "low",
+          "title": "Type-checker suppression",
+          "description": "`as any` / `@ts-ignore` / `# type: ignore` silences the type checker without fixing the underlying issue.",
+          "evidence": [
+            {
+              "file": "tests/controls-runner.ts",
+              "line": 196,
+              "snippet": "await assert.rejects(() => openRouterJson({}), e => (e as any).status === 503);"
+            }
+          ],
+          "remediation": "Either fix the underlying type problem or add a justification comment with an issue number to track removal.",
+          "source": "production-ready:ai-type-suppression",
+          "triage": {
+            "decision": "kept",
+            "reproduce": {
+              "fpSignal": null
+            },
+            "originalSeverity": "low"
+          }
+        },
+        {
+          "id": "ai-code.type-suppression.tests/controls-runner.ts.205",
+          "domain": "ai-code",
+          "severity": "low",
+          "title": "Type-checker suppression",
+          "description": "`as any` / `@ts-ignore` / `# type: ignore` silences the type checker without fixing the underlying issue.",
+          "evidence": [
+            {
+              "file": "tests/controls-runner.ts",
+              "line": 205,
+              "snippet": "await assert.rejects(() => openRouterJson({}), e => (e as any).status === 429);"
+            }
+          ],
+          "remediation": "Either fix the underlying type problem or add a justification comment with an issue number to track removal.",
+          "source": "production-ready:ai-type-suppression",
+          "triage": {
+            "decision": "kept",
+            "reproduce": {
+              "fpSignal": null
+            },
+            "originalSeverity": "low"
+          }
+        }
+      ],
+      "manualChecklist": [
+        {
+          "item": "Diff every AI-generated commit against the previous state — focus on what was REMOVED, not just added",
+          "rationale": "Agents commonly remove security checks during 'fixing' a test or unrelated bug."
+        },
+        {
+          "item": "Spot-check tests by running them in --watch + deliberately breaking the SUT — do the tests fail?",
+          "rationale": "Fake-passing tests reveal themselves when the code they 'test' actually breaks."
+        },
+        {
+          "item": "Inspect every `if NODE_ENV === 'production'` branch — was the security check actually wired in prod?",
+          "rationale": "AI often forgets to remove dev escape hatches."
+        }
+      ]
+    },
+    {
+      "domain": "browser-test",
+      "ranAt": "2026-10-10T01:11:30.076Z",
+      "durationMs": 0,
+      "toolsUsed": [],
+      "toolsMissing": [],
+      "findings": [],
+      "manualChecklist": [
+        {
+          "item": "Sign-in, sign-out, and 'forgot password' flow on desktop AND mobile viewport",
+          "rationale": "Most common UX regression after AI-generated changes."
+        },
+        {
+          "item": "Direct-URL access to authenticated routes when logged out — confirms server-side gating",
+          "rationale": "Client-side guards are not enough.",
+          "critical": true
+        },
+        {
+          "item": "Mobile viewport check at 360×640 (iPhone SE size) — tap targets ≥ 44×44px",
+          "rationale": "WCAG 2.5.5 + mobile users are typically your largest cohort."
+        },
+        {
+          "item": "Form validation: try submitting empty, oversized, malformed, and SQL/XSS payloads",
+          "rationale": "Validation gaps surface here that grep misses."
+        },
+        {
+          "item": "Browser back/forward after sensitive actions (delete, purchase) — does state stay consistent?",
+          "rationale": "AI often forgets history.replaceState; back-button reveals stale UI."
+        },
+        {
+          "item": "Open DevTools Network tab during normal use — does any request go to localhost / staging?",
+          "rationale": "Mixed-environment URLs leak through AI copy-paste."
+        },
+        {
+          "item": "Check console for errors and warnings across 5+ representative flows",
+          "rationale": "Production-only errors (e.g., CSP violations) usually surface here first."
+        }
+      ],
+      "coverage": {
+        "status": "fail",
+        "reason": "no --url provided; runtime browser behavior was not exercised"
+      }
+    },
+    {
+      "domain": "concurrency",
+      "ranAt": "2026-10-10T01:11:30.093Z",
+      "durationMs": 15,
+      "toolsUsed": [
+        "production-ready:concurrency-heuristics"
+      ],
+      "toolsMissing": [],
+      "findings": [
+        {
+          "id": "concurrency.lost-update.tests/controls-runner.ts",
+          "domain": "concurrency",
+          "severity": "medium",
+          "title": "Read-modify-write with no transaction / optimistic lock",
+          "description": "This module reads a record and later writes it back without any transaction, `SELECT … FOR UPDATE`, or version column. Two concurrent writers can each read the old value and clobber each other — a classic lost update.",
+          "evidence": [
+            {
+              "file": "tests/controls-runner.ts",
+              "line": 159,
+              "snippet": "db.run(\"UPDATE jobs SET status='done'\");"
+            }
+          ],
+          "impact": "Silent data loss under concurrency: balances, counters, and inventory drift when two requests race.",
+          "confidence": "low",
+          "verificationStatus": "heuristic",
+          "remediationClass": "code-change",
+          "remediation": "Wrap the read-modify-write in a transaction, or use an optimistic-lock version column and retry on conflict, or push the mutation into a single atomic SQL statement (`UPDATE … SET x = x + 1`).",
+          "source": "production-ready:lost-update",
+          "references": [
+            "https://en.wikipedia.org/wiki/Write%E2%80%93write_conflict"
+          ],
+          "triage": {
+            "decision": "kept",
+            "reproduce": {
+              "fpSignal": null
+            },
+            "originalSeverity": "medium"
+          }
+        },
+        {
+          "id": "concurrency.lost-update.src/lib/controls.ts",
+          "domain": "concurrency",
+          "severity": "medium",
+          "title": "Read-modify-write with no transaction / optimistic lock",
+          "description": "This module reads a record and later writes it back without any transaction, `SELECT … FOR UPDATE`, or version column. Two concurrent writers can each read the old value and clobber each other — a classic lost update.",
+          "evidence": [
+            {
+              "file": "src/lib/controls.ts",
+              "line": 48,
+              "snippet": "ON CONFLICT(scope,bucket) DO UPDATE SET used = used + 1 WHERE used < ?"
+            }
+          ],
+          "impact": "Silent data loss under concurrency: balances, counters, and inventory drift when two requests race.",
+          "confidence": "low",
+          "verificationStatus": "heuristic",
+          "remediationClass": "code-change",
+          "remediation": "Wrap the read-modify-write in a transaction, or use an optimistic-lock version column and retry on conflict, or push the mutation into a single atomic SQL statement (`UPDATE … SET x = x + 1`).",
+          "source": "production-ready:lost-update",
+          "references": [
+            "https://en.wikipedia.org/wiki/Write%E2%80%93write_conflict"
+          ],
+          "triage": {
+            "decision": "kept",
+            "reproduce": {
+              "fpSignal": null
+            },
+            "originalSeverity": "medium"
+          }
+        },
+        {
+          "id": "concurrency.lost-update.src/lib/review.ts",
+          "domain": "concurrency",
+          "severity": "medium",
+          "title": "Read-modify-write with no transaction / optimistic lock",
+          "description": "This module reads a record and later writes it back without any transaction, `SELECT … FOR UPDATE`, or version column. Two concurrent writers can each read the old value and clobber each other — a classic lost update.",
+          "evidence": [
+            {
+              "file": "src/lib/review.ts",
+              "line": 52,
+              "snippet": "const reserved = db.query(\"UPDATE jobs SET rewrites = rewrites + 1 WHERE id = ? AND status ="
+            }
+          ],
+          "impact": "Silent data loss under concurrency: balances, counters, and inventory drift when two requests race.",
+          "confidence": "low",
+          "verificationStatus": "heuristic",
+          "remediationClass": "code-change",
+          "remediation": "Wrap the read-modify-write in a transaction, or use an optimistic-lock version column and retry on conflict, or push the mutation into a single atomic SQL statement (`UPDATE … SET x = x + 1`).",
+          "source": "production-ready:lost-update",
+          "references": [
+            "https://en.wikipedia.org/wiki/Write%E2%80%93write_conflict"
+          ],
+          "triage": {
+            "decision": "kept",
+            "reproduce": {
+              "fpSignal": null
+            },
+            "originalSeverity": "medium"
+          }
+        }
+      ],
+      "manualChecklist": [
+        {
+          "item": "Double-submit every create/pay/delete action (click twice fast, and retry on a flaky network) — confirm exactly one side effect",
+          "rationale": "Idempotency and in-flight guards can only be confirmed by exercising the real flow.",
+          "critical": true
+        },
+        {
+          "item": "Open the app in two tabs, edit the same record in both, save both — confirm the second save is rejected or merged, not silently lost",
+          "rationale": "Lost-update / optimistic-lock behaviour is invisible to static analysis.",
+          "critical": true
+        },
+        {
+          "item": "Fire two requests that depend on ordering (e.g. create then immediately update) and confirm out-of-order arrival is handled",
+          "rationale": "Request ordering / race conditions surface only under real latency."
+        },
+        {
+          "item": "Trigger a provider webhook twice with the same event id — confirm the second is a no-op (dedupe by event id)",
+          "rationale": "Webhook redelivery is guaranteed by most providers; duplicate processing corrupts state."
+        },
+        {
+          "item": "Kill the process mid-write (or simulate it) and confirm no partially-written / torn state remains on restart",
+          "rationale": "Atomic-write / crash-consistency guarantees need a fault-injection test."
+        }
+      ],
+      "coverage": {
+        "status": "partial",
+        "reason": "static heuristics only; race conditions need runtime confirmation"
+      }
+    },
+    {
+      "domain": "visual-consistency",
+      "ranAt": "2026-10-10T01:11:30.097Z",
+      "durationMs": 3,
+      "toolsUsed": [
+        "production-ready:visual-heuristics"
+      ],
+      "toolsMissing": [],
+      "findings": [],
+      "manualChecklist": [
+        {
+          "item": "Tab through every interactive element — confirm hover, focus-visible, active, and disabled states all exist and are distinct",
+          "rationale": "AI-generated components routinely ship only the default state; missing focus rings also fail accessibility.",
+          "critical": true
+        },
+        {
+          "item": "Shrink to 320px and grow to 1440px+ — confirm no horizontal scroll, clipped text, or overlapping elements at any breakpoint",
+          "rationale": "Overflow and breakpoint gaps are perceptual and not detectable by grep."
+        },
+        {
+          "item": "Render the loading, empty, error, and success state of every data view — confirm all four are designed, not just the happy path",
+          "rationale": "Empty/error/loading states are the most commonly missing screens in AI-built UIs.",
+          "critical": true
+        },
+        {
+          "item": "Compare headings, body, and captions across 3+ screens — confirm one consistent type scale, not per-screen font sizes",
+          "rationale": "Typography drift is obvious to users but invisible to static checks."
+        },
+        {
+          "item": "Fill fields with the longest realistic content (long names, long i18n strings, big numbers) — confirm nothing truncates or breaks layout",
+          "rationale": "Localization/content expansion (German, etc.) breaks fixed-width layouts."
+        },
+        {
+          "item": "Spot-check that repeated components (buttons, cards, inputs) use one shared variant, not divergent one-off copies",
+          "rationale": "Component-variant drift accumulates silently across a codebase."
+        }
+      ],
+      "coverage": {
+        "status": "partial",
+        "reason": "no URL — static heuristics only, no rendered inspection"
+      }
+    },
+    {
+      "domain": "seo-aeo",
+      "ranAt": "2026-10-10T01:11:30.127Z",
+      "durationMs": 26,
+      "toolsUsed": [
+        "curl"
+      ],
+      "toolsMissing": [
+        "lighthouse"
+      ],
+      "findings": [
+        {
+          "id": "seo-aeo.repo-missing-jsonld",
+          "domain": "seo-aeo",
+          "severity": "low",
+          "title": "No JSON-LD structured data in any template",
+          "description": "Static scan found no JSON-LD blocks. JSON-LD is not a ranking factor but helps answer engines interpret entities when it matches visible content. Confirm with a rendered fetch — some sites inject it at runtime.",
+          "evidence": [],
+          "remediation": "If the page represents a clear entity, add matching JSON-LD. Validate with the Rich Results Test.",
+          "source": "filesystem/grep",
+          "confidence": "medium",
+          "verificationStatus": "heuristic",
+          "remediationClass": "code-change"
+        },
+        {
+          "id": "seo-aeo.repo-noindex-template.L29wdC96b3Vy",
+          "domain": "seo-aeo",
+          "severity": "low",
+          "title": "noindex directive in template: lib/ste100page.ts",
+          "description": "A page template emits a noindex robots meta. This is correct for staging/private pages but a defect if leaked to production public routes. Confirm the template is not used for intended-public pages.",
+          "evidence": [
+            {
+              "file": "/opt/zouroboros/repo/Projects/reporeel-deploy/reporeel/src/lib/ste100page.ts",
+              "line": 15,
+              "snippet": "<meta name=\"robots\" content=\"noindex\" />"
+            }
+          ],
+          "remediation": "If this template renders public content, remove the noindex. If it's a staging/private template, ensure production builds don't import it.",
+          "source": "filesystem/grep",
+          "confidence": "medium",
+          "verificationStatus": "heuristic",
+          "remediationClass": "code-change"
+        }
+      ],
+      "manualChecklist": [
+        {
+          "item": "Confirm structured data (if present) matches visible page content",
+          "rationale": "Schema that does not mirror visible content is a spam signal and can trigger manual action. The Rich Results Test validates syntax; only a human can confirm semantic match against the rendered page."
+        }
+      ],
+      "coverage": {
+        "status": "partial",
+        "reason": "no audit URL provided; repo heuristics only — live crawl/index signals not verified"
+      }
+    }
+  ],
+  "manualChecklist": [
+    {
+      "domain": "legal",
+      "item": "List every third party that receives user data (analytics, error reporting, LLM providers, payment processors)",
+      "rationale": "Required for GDPR/CCPA disclosure and Data Processing Agreements."
+    },
+    {
+      "domain": "legal",
+      "item": "Define data retention windows per data type",
+      "rationale": "Indefinite retention is hostile to user privacy and increases breach blast radius."
+    },
+    {
+      "domain": "legal",
+      "item": "Verify Data Processing Agreement (DPA) signed with each sub-processor",
+      "rationale": "GDPR Article 28 requires DPAs with processors handling personal data."
+    },
+    {
+      "domain": "legal",
+      "item": "Cookie banner / consent management is wired (if EU/UK users)",
+      "rationale": "GDPR + ePrivacy Directive require informed consent for non-essential cookies."
+    },
+    {
+      "domain": "legal",
+      "item": "Privacy policy lists all processors + retention windows + lawful basis",
+      "rationale": "Plain-language disclosure is legally required, not optional."
+    },
+    {
+      "domain": "secrets",
+      "item": "Confirm publishable/anon keys are documented as intentionally-public by the provider",
+      "rationale": "Some 'public' keys are safe to expose (Stripe publishable, Supabase anon); others are not."
+    },
+    {
+      "domain": "secrets",
+      "item": "Verify credential rotation cadence is defined and tested",
+      "rationale": "Even unleaked credentials should be rotated periodically."
+    },
+    {
+      "domain": "secrets",
+      "item": "Check provider audit logs for unexpected access",
+      "rationale": "Past leaks may have been exploited."
+    },
+    {
+      "domain": "authentication",
+      "item": "Test ownership boundaries — sign in as user A, try to access user B's resources via direct URL",
+      "rationale": "BOLA / IDOR is the #1 API vuln per OWASP API Top 10 2023."
+    },
+    {
+      "domain": "authentication",
+      "item": "Verify MFA is available (and required for admin)",
+      "rationale": "Compromised passwords are the most common breach vector."
+    },
+    {
+      "domain": "authentication",
+      "item": "Confirm session timeout + inactivity logout exists",
+      "rationale": "Long-lived sessions on shared/public devices are a leak path."
+    },
+    {
+      "domain": "authentication",
+      "item": "Check rate limit on login + password reset endpoints",
+      "rationale": "Credential stuffing & enumeration require throttling."
+    },
+    {
+      "domain": "api-safety",
+      "item": "Verify every state-changing endpoint requires POST/PUT/PATCH/DELETE (not GET)",
+      "rationale": "GET requests are logged in browser history, referrer headers, and CDN logs."
+    },
+    {
+      "domain": "api-safety",
+      "item": "Confirm OpenAPI/Swagger spec exists and matches implementation",
+      "rationale": "Drift between docs and code hides shadow endpoints."
+    },
+    {
+      "domain": "api-safety",
+      "item": "Test rate limits return 429 with a Retry-After header",
+      "rationale": "Some implementations silently drop; clients need feedback."
+    },
+    {
+      "domain": "owasp",
+      "item": "Threat-model the auth boundary: what does a malicious authenticated user gain access to?",
+      "rationale": "OWASP A04 (Insecure Design) cannot be detected by scanners — needs human judgement."
+    },
+    {
+      "domain": "owasp",
+      "item": "Review every dependency added in the last 6 months for typosquatting / abandoned-maintainer risk",
+      "rationale": "Supply-chain attacks (A08) target recently-added or unmaintained packages."
+    },
+    {
+      "domain": "owasp",
+      "item": "Run a real DAST (ZAP full scan) at least once before launch and after every major release",
+      "rationale": "Static analysis cannot replicate exploit paths."
+    },
+    {
+      "domain": "abuse-rate",
+      "item": "Confirm a per-tenant daily/monthly cost cap is enforced at the application layer",
+      "rationale": "Rate limits alone don't prevent a single bad actor from draining a budget within their quota."
+    },
+    {
+      "domain": "abuse-rate",
+      "item": "Bot/CAPTCHA on signup + login + 'forgot password'",
+      "rationale": "Most abuse arrives via cheap-account creation."
+    },
+    {
+      "domain": "abuse-rate",
+      "item": "Billing-anomaly alert wired to ops channel",
+      "rationale": "Catch runaway costs in minutes not days."
+    },
+    {
+      "domain": "frontend",
+      "item": "Open DevTools → Network tab on the production app — is any request going to a dev/staging URL?",
+      "rationale": "AI-generated code commonly leaves mixed-environment URLs after a copy-paste."
+    },
+    {
+      "domain": "frontend",
+      "item": "Check the bundle for comments / console.log statements",
+      "rationale": "Debug output may leak request/response shapes and PII."
+    },
+    {
+      "domain": "logging",
+      "item": "Verify centralized logs are searchable for at least 7 days",
+      "rationale": "Incidents are often noticed after they end; you need retention to retro."
+    },
+    {
+      "domain": "logging",
+      "item": "Confirm uptime monitor with on-call paging (StatusCake / BetterStack / Pingdom)",
+      "rationale": "External probe catches what your internal metrics can't."
+    },
+    {
+      "domain": "logging",
+      "item": "Per-tenant audit trail for: auth events, permission changes, admin actions, data exports",
+      "rationale": "Required for SOC 2 + GDPR + breach forensics."
+    },
+    {
+      "domain": "accessibility",
+      "item": "Keyboard-only pass: can you reach every interactive control with Tab? Operate it with Enter/Space?",
+      "rationale": "Automated tools catch ~30–40% of WCAG issues; keyboard ops can't be inferred from DOM."
+    },
+    {
+      "domain": "accessibility",
+      "item": "Screen reader smoke test (VoiceOver / NVDA): does the announcement order make sense?",
+      "rationale": "Visually-ordered DOM can confuse screen readers."
+    },
+    {
+      "domain": "accessibility",
+      "item": "Reduced motion preference is honored",
+      "rationale": "WCAG 2.3.3 (Animation from Interactions) and motion-disorder users."
+    },
+    {
+      "domain": "performance",
+      "item": "Tested rollback procedure in staging within last 30 days",
+      "rationale": "An untested rollback is a hope, not a plan."
+    },
+    {
+      "domain": "performance",
+      "item": "Backups exist AND restore has been tested in last 90 days",
+      "rationale": "Schrödinger's backup: simultaneously exists and doesn't until verified."
+    },
+    {
+      "domain": "performance",
+      "item": "Capacity tested at ≥ 2× projected peak traffic",
+      "rationale": "Launch traffic spikes are bigger than steady state."
+    },
+    {
+      "domain": "performance",
+      "item": "Per-route SLOs defined with error budget tracking",
+      "rationale": "Reliability targets without budgets become aspirations."
+    },
+    {
+      "domain": "payments",
+      "item": "Confirm app has no money-handling surface",
+      "rationale": "If payments appear later, re-run this check."
+    },
+    {
+      "domain": "file-uploads",
+      "item": "No upload code detected — confirm app does not accept user uploads.",
+      "rationale": "Re-run when uploads are added."
+    },
+    {
+      "domain": "database",
+      "item": "Test backup restore in a scratch environment — actually restore, don't just dump",
+      "rationale": "Backup files aren't backups; restored databases are."
+    },
+    {
+      "domain": "database",
+      "item": "Database admin password rotation policy + last rotation date",
+      "rationale": "Long-lived admin creds are a high-value target."
+    },
+    {
+      "domain": "database",
+      "item": "Audit log captures: schema changes, role grants, admin queries, data exports",
+      "rationale": "Required for SOC 2 + breach forensics."
+    },
+    {
+      "domain": "database",
+      "item": "Confirm migrations are idempotent and tested in CI",
+      "rationale": "AI-generated migrations frequently aren't reversible."
+    },
+    {
+      "domain": "ai-code",
+      "item": "Diff every AI-generated commit against the previous state — focus on what was REMOVED, not just added",
+      "rationale": "Agents commonly remove security checks during 'fixing' a test or unrelated bug."
+    },
+    {
+      "domain": "ai-code",
+      "item": "Spot-check tests by running them in --watch + deliberately breaking the SUT — do the tests fail?",
+      "rationale": "Fake-passing tests reveal themselves when the code they 'test' actually breaks."
+    },
+    {
+      "domain": "ai-code",
+      "item": "Inspect every `if NODE_ENV === 'production'` branch — was the security check actually wired in prod?",
+      "rationale": "AI often forgets to remove dev escape hatches."
+    },
+    {
+      "domain": "browser-test",
+      "item": "Sign-in, sign-out, and 'forgot password' flow on desktop AND mobile viewport",
+      "rationale": "Most common UX regression after AI-generated changes."
+    },
+    {
+      "domain": "browser-test",
+      "item": "Direct-URL access to authenticated routes when logged out — confirms server-side gating",
+      "rationale": "Client-side guards are not enough.",
+      "critical": true
+    },
+    {
+      "domain": "browser-test",
+      "item": "Mobile viewport check at 360×640 (iPhone SE size) — tap targets ≥ 44×44px",
+      "rationale": "WCAG 2.5.5 + mobile users are typically your largest cohort."
+    },
+    {
+      "domain": "browser-test",
+      "item": "Form validation: try submitting empty, oversized, malformed, and SQL/XSS payloads",
+      "rationale": "Validation gaps surface here that grep misses."
+    },
+    {
+      "domain": "browser-test",
+      "item": "Browser back/forward after sensitive actions (delete, purchase) — does state stay consistent?",
+      "rationale": "AI often forgets history.replaceState; back-button reveals stale UI."
+    },
+    {
+      "domain": "browser-test",
+      "item": "Open DevTools Network tab during normal use — does any request go to localhost / staging?",
+      "rationale": "Mixed-environment URLs leak through AI copy-paste."
+    },
+    {
+      "domain": "browser-test",
+      "item": "Check console for errors and warnings across 5+ representative flows",
+      "rationale": "Production-only errors (e.g., CSP violations) usually surface here first."
+    },
+    {
+      "domain": "concurrency",
+      "item": "Double-submit every create/pay/delete action (click twice fast, and retry on a flaky network) — confirm exactly one side effect",
+      "rationale": "Idempotency and in-flight guards can only be confirmed by exercising the real flow.",
+      "critical": true
+    },
+    {
+      "domain": "concurrency",
+      "item": "Open the app in two tabs, edit the same record in both, save both — confirm the second save is rejected or merged, not silently lost",
+      "rationale": "Lost-update / optimistic-lock behaviour is invisible to static analysis.",
+      "critical": true
+    },
+    {
+      "domain": "concurrency",
+      "item": "Fire two requests that depend on ordering (e.g. create then immediately update) and confirm out-of-order arrival is handled",
+      "rationale": "Request ordering / race conditions surface only under real latency."
+    },
+    {
+      "domain": "concurrency",
+      "item": "Trigger a provider webhook twice with the same event id — confirm the second is a no-op (dedupe by event id)",
+      "rationale": "Webhook redelivery is guaranteed by most providers; duplicate processing corrupts state."
+    },
+    {
+      "domain": "concurrency",
+      "item": "Kill the process mid-write (or simulate it) and confirm no partially-written / torn state remains on restart",
+      "rationale": "Atomic-write / crash-consistency guarantees need a fault-injection test."
+    },
+    {
+      "domain": "visual-consistency",
+      "item": "Tab through every interactive element — confirm hover, focus-visible, active, and disabled states all exist and are distinct",
+      "rationale": "AI-generated components routinely ship only the default state; missing focus rings also fail accessibility.",
+      "critical": true
+    },
+    {
+      "domain": "visual-consistency",
+      "item": "Shrink to 320px and grow to 1440px+ — confirm no horizontal scroll, clipped text, or overlapping elements at any breakpoint",
+      "rationale": "Overflow and breakpoint gaps are perceptual and not detectable by grep."
+    },
+    {
+      "domain": "visual-consistency",
+      "item": "Render the loading, empty, error, and success state of every data view — confirm all four are designed, not just the happy path",
+      "rationale": "Empty/error/loading states are the most commonly missing screens in AI-built UIs.",
+      "critical": true
+    },
+    {
+      "domain": "visual-consistency",
+      "item": "Compare headings, body, and captions across 3+ screens — confirm one consistent type scale, not per-screen font sizes",
+      "rationale": "Typography drift is obvious to users but invisible to static checks."
+    },
+    {
+      "domain": "visual-consistency",
+      "item": "Fill fields with the longest realistic content (long names, long i18n strings, big numbers) — confirm nothing truncates or breaks layout",
+      "rationale": "Localization/content expansion (German, etc.) breaks fixed-width layouts."
+    },
+    {
+      "domain": "visual-consistency",
+      "item": "Spot-check that repeated components (buttons, cards, inputs) use one shared variant, not divergent one-off copies",
+      "rationale": "Component-variant drift accumulates silently across a codebase."
+    },
+    {
+      "domain": "seo-aeo",
+      "item": "Confirm structured data (if present) matches visible page content",
+      "rationale": "Schema that does not mirror visible content is a spam signal and can trigger manual action. The Rich Results Test validates syntax; only a human can confirm semantic match against the rendered page."
+    }
+  ],
+  "tooling": {
+    "gitleaks": {
+      "available": false
+    },
+    "trufflehog": {
+      "available": false
+    },
+    "semgrep": {
+      "available": false
+    },
+    "osv-scanner": {
+      "available": false
+    },
+    "trivy": {
+      "available": false
+    },
+    "lighthouse": {
+      "available": false
+    },
+    "axe": {
+      "available": false
+    },
+    "pa11y": {
+      "available": false
+    },
+    "nuclei": {
+      "available": false
+    }
+  },
+  "coverage": {
+    "perDomain": [
+      {
+        "domain": "legal",
+        "status": "pass"
+      },
+      {
+        "domain": "secrets",
+        "status": "partial",
+        "reason": "ran without gitleaks, trufflehog"
+      },
+      {
+        "domain": "authentication",
+        "status": "partial",
+        "reason": "ran without semgrep"
+      },
+      {
+        "domain": "api-safety",
+        "status": "pass"
+      },
+      {
+        "domain": "owasp",
+        "status": "partial",
+        "reason": "ran without semgrep, osv-scanner"
+      },
+      {
+        "domain": "abuse-rate",
+        "status": "pass"
+      },
+      {
+        "domain": "frontend",
+        "status": "pass"
+      },
+      {
+        "domain": "logging",
+        "status": "pass"
+      },
+      {
+        "domain": "accessibility",
+        "status": "pass"
+      },
+      {
+        "domain": "performance",
+        "status": "pass"
+      },
+      {
+        "domain": "payments",
+        "status": "pass"
+      },
+      {
+        "domain": "file-uploads",
+        "status": "pass"
+      },
+      {
+        "domain": "database",
+        "status": "pass"
+      },
+      {
+        "domain": "ai-code",
+        "status": "pass"
+      },
+      {
+        "domain": "browser-test",
+        "status": "fail",
+        "reason": "no --url provided; runtime browser behavior was not exercised"
+      },
+      {
+        "domain": "concurrency",
+        "status": "partial",
+        "reason": "static heuristics only; race conditions need runtime confirmation"
+      },
+      {
+        "domain": "visual-consistency",
+        "status": "partial",
+        "reason": "no URL — static heuristics only, no rendered inspection"
+      },
+      {
+        "domain": "seo-aeo",
+        "status": "partial",
+        "reason": "no audit URL provided; repo heuristics only — live crawl/index signals not verified"
+      }
+    ],
+    "gaps": [
+      {
+        "kind": "domain:secrets:partial",
+        "severity": "soft",
+        "detail": "secrets ran with reduced coverage — ran without gitleaks, trufflehog"
+      },
+      {
+        "kind": "domain:authentication:partial",
+        "severity": "soft",
+        "detail": "authentication ran with reduced coverage — ran without semgrep"
+      },
+      {
+        "kind": "domain:owasp:partial",
+        "severity": "soft",
+        "detail": "owasp ran with reduced coverage — ran without semgrep, osv-scanner"
+      },
+      {
+        "kind": "domain:browser-test:no-coverage",
+        "severity": "soft",
+        "detail": "browser-test could not be exercised — no --url provided; runtime browser behavior was not exercised"
+      },
+      {
+        "kind": "domain:concurrency:partial",
+        "severity": "soft",
+        "detail": "concurrency ran with reduced coverage — static heuristics only; race conditions need runtime confirmation"
+      },
+      {
+        "kind": "domain:visual-consistency:partial",
+        "severity": "soft",
+        "detail": "visual-consistency ran with reduced coverage — no URL — static heuristics only, no rendered inspection"
+      },
+      {
+        "kind": "domain:seo-aeo:partial",
+        "severity": "soft",
+        "detail": "seo-aeo ran with reduced coverage — no audit URL provided; repo heuristics only — live crawl/index signals not verified"
+      },
+      {
+        "kind": "scanners:multiple-missing",
+        "severity": "blocking",
+        "detail": "3 core scanners unavailable (gitleaks, semgrep, osv-scanner) — external verification is largely absent; only in-process heuristics ran"
+      },
+      {
+        "kind": "manual:critical-unverified",
+        "severity": "soft",
+        "detail": "5 critical manual check(s) not signed off — pass --manual-verified after a human confirms them"
+      }
+    ],
+    "missingScanners": [
+      "gitleaks",
+      "semgrep",
+      "osv-scanner"
+    ],
+    "ceiling": "private-beta-only",
+    "incomplete": true
+  }
+}
