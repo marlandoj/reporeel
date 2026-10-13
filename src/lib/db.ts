@@ -42,6 +42,7 @@ const ADDED_COLUMNS: [string, string][] = [
   ["warnings", "TEXT"],
   ["rewrites", "INTEGER NOT NULL DEFAULT 0"],
   ["finished_at", "INTEGER"],
+  ["retry_after", "INTEGER"],
 ];
 
 const existing = new Set((db.query("PRAGMA table_info(jobs)").all() as { name: string }[]).map((r) => r.name));
@@ -53,9 +54,14 @@ db.run(`CREATE INDEX IF NOT EXISTS idx_jobs_ip ON jobs(ip, created_at)`);
 db.run(`CREATE INDEX IF NOT EXISTS idx_jobs_status ON jobs(status, created_at)`);
 
 const LEGACY_OPTIONS = JSON.stringify({ grounding: "both", format: "landscape", captions: false, review: false });
-db.run("UPDATE jobs SET variant = 'landscape:both:nocc', format = 'landscape', options = ?, kind = CASE WHEN canonical LIKE '%#%' THEN 'pr' ELSE 'repo' END WHERE variant IS NULL", [LEGACY_OPTIONS]);
-db.run("UPDATE jobs SET status = 'queued', phase = 'render' WHERE status IN ('voicing','rendering')");
-db.run("UPDATE jobs SET status = 'queued' WHERE status IN ('ingesting','scripting')");
+/** Only the queue worker may recover interrupted jobs, never a CLI/tool import. */
+export function recoverInterruptedJobs(): void {
+  db.transaction(() => {
+    db.run("UPDATE jobs SET variant = 'landscape:both:nocc', format = 'landscape', options = ?, kind = CASE WHEN canonical LIKE '%#%' THEN 'pr' ELSE 'repo' END WHERE variant IS NULL", [LEGACY_OPTIONS]);
+    db.run("UPDATE jobs SET status = 'queued', phase = 'render' WHERE status IN ('voicing','rendering')");
+    db.run("UPDATE jobs SET status = 'queued' WHERE status IN ('ingesting','scripting')");
+  })();
+}
 
 export type Job = {
   id: string;
@@ -85,6 +91,7 @@ export type Job = {
   warnings: string | null;
   rewrites: number;
   finished_at: number | null;
+  retry_after: number | null;
 };
 
 export const ACTIVE_STATUSES = ["queued", "ingesting", "scripting", "voicing", "rendering"];

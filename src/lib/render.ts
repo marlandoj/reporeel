@@ -1,3 +1,4 @@
+import { assertGenerationEnabled, watchGenerationProcess, ControlError } from "./controls";
 import { join } from "node:path";
 import { log } from "./log";
 
@@ -30,11 +31,13 @@ async function pump(stream: ReadableStream<Uint8Array>, onLine: (line: string) =
 
 export async function renderComposition(jobDir: string, hooks: RenderHooks = {}): Promise<string> {
   const out = join(jobDir, "out.mp4");
+  assertGenerationEnabled();
   const proc = Bun.spawn(
     [HF_BIN, "render", jobDir, "-o", out, "-q", "standard"],
     { env: { ...process.env, FORCE_COLOR: "0", NO_COLOR: "1" }, stdout: "pipe", stderr: "pipe", cwd: jobDir }
   );
   hooks.register?.(proc);
+  const unwatch = watchGenerationProcess(proc);
   let timedOut = false;
   const timer = setTimeout(() => {
     timedOut = true;
@@ -47,6 +50,8 @@ export async function renderComposition(jobDir: string, hooks: RenderHooks = {})
   };
   const [stdout, stderr, code] = await Promise.all([pump(proc.stdout, onLine), pump(proc.stderr, onLine), proc.exited]);
   clearTimeout(timer);
+  unwatch();
+  assertGenerationEnabled();
   if (timedOut) throw new Error("render timed out");
   if (code !== 0) {
     const tail = (stderr.trim() || stdout.trim()).slice(-800);
@@ -59,11 +64,15 @@ export async function renderComposition(jobDir: string, hooks: RenderHooks = {})
 }
 
 export async function makePoster(jobDir: string, at = 1.6): Promise<boolean> {
+  assertGenerationEnabled();
   const proc = Bun.spawn(
     ["ffmpeg", "-y", "-loglevel", "error", "-ss", String(at), "-i", join(jobDir, "out.mp4"), "-frames:v", "1", "-q:v", "3", join(jobDir, "poster.jpg")],
     { env: { ...process.env }, stdout: "ignore", stderr: "pipe" }
   );
+  const unwatch = watchGenerationProcess(proc);
   const [stderr, code] = await Promise.all([new Response(proc.stderr).text(), proc.exited]);
+  unwatch();
+  assertGenerationEnabled();
   if (code !== 0) log(`poster failed: ${stderr.slice(-300)}`);
   return code === 0;
 }
