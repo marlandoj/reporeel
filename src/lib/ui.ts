@@ -510,6 +510,7 @@ ${metaTags(ctx)}
   function $(id) { return document.getElementById(id); }
   var state = { id: null, job: null, script: null, pollTimer: null, editorOpen: false, cachedNotice: false, captionsTouched: false };
   var opts = { renderer: "hyperframes", grounding: "both", format: "landscape", style: "studio", plain: false, captions: false, review: true };
+  var huashuOK = true;
   var STYLE_META = ${STYLE_JSON};
   try {
     var saved = JSON.parse(localStorage.getItem("rr-opts") || "null");
@@ -518,9 +519,20 @@ ${metaTags(ctx)}
     if (saved && saved.plain != null) opts.plain = !!saved.plain;
   } catch (e) {}
   function persistOpts() { try { localStorage.setItem("rr-opts", JSON.stringify({ renderer: opts.renderer, style: opts.style, plain: opts.plain })); } catch (e) {} }
+  fetch("/healthz", { headers: { Accept: "application/json" } })
+    .then(function (r) { return r.json(); })
+    .then(function (h) { huashuOK = !!(h && h.huashu); applyStyleSelect(); })
+    .catch(function () {});
   function applyStyleSelect() {
     var sel = $("style");
-    $("renderer").value = opts.renderer;
+    var rsel = $("renderer");
+    var hopt = rsel.querySelector('option[value="huashu-keynote"]');
+    if (hopt) {
+      hopt.disabled = !huashuOK;
+      hopt.textContent = huashuOK ? "Huashu Keynote" : "Huashu Keynote (unavailable on this server)";
+    }
+    if (!huashuOK && opts.renderer === "huashu-keynote") opts.renderer = "hyperframes";
+    rsel.value = opts.renderer;
     sel.disabled = opts.renderer === "huashu-keynote";
     sel.value = opts.style;
     $("plain").checked = opts.plain;

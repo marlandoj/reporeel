@@ -6,6 +6,10 @@ import { FORMATS, type JobOptions } from "./options";
 import { buildCaptions, toSrt } from "./captions";
 import type { RenderHooks } from "./render";
 
+export function huashuAvailable(): boolean {
+  try { checkHuashu(); return true; } catch { return false; }
+}
+
 export function checkHuashu(): string {
   const root = process.env.HUASHU_ROOT;
   if (!root || !existsSync(join(root, "scripts/engine/render.py")))

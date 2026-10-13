@@ -16,6 +16,7 @@ import { STYLES, type Style } from "./lib/styles";
 import { lintText, rewritePlain, steQuickReference } from "./lib/steapi";
 import { stePageHtml } from "./lib/ste100page";
 import { scriptToText } from "./lib/script";
+import { huashuAvailable } from "./lib/huashu";
 import { readScript } from "./lib/pipeline";
 import { log } from "./lib/log";
 
@@ -428,7 +429,7 @@ app.get("/api/ste100/scripts/:id", (c) => {
 
 app.get("/healthz", (c) => {
   const storage = storageStats();
-  return c.json({ ok: true, queue: queueDepth(), working: currentJobId(), reels: storage.jobs, storageMb: Math.round(storage.bytes / 1e5) / 10 });
+  return c.json({ ok: true, queue: queueDepth(), working: currentJobId(), reels: storage.jobs, storageMb: Math.round(storage.bytes / 1e5) / 10, huashu: huashuAvailable() });
 });
 
 startWorker();
