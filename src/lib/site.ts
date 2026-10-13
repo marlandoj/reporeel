@@ -77,8 +77,8 @@ export function homeHtml(): string {
 <meta property="og:title" content="RepoReel — Your code has a story.">
 <meta property="og:description" content="From GitHub repository to narrated movie. Made for the things you build.">
 <meta property="og:type" content="website"><meta property="og:image" content="/og.png">
-<meta name="twitter:card" content="summary_large_image"><meta name="theme-color" content="#f5f3ec">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='10' fill='%23ed4932'/%3E%3Cpath d='m16 11 14 9-14 9z' fill='%23fff'/%3E%3C/svg%3E">
+<meta name="twitter:card" content="summary_large_image"><meta name="theme-color" content="#0d0c0a"><meta name="color-scheme" content="dark">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='10' fill='%23f0a832'/%3E%3Cpath d='m16 11 14 9-14 9z' fill='%23201304'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="/site/site.css">
 </head><body>
 <a class="skip" href="#main">Skip to content</a>
@@ -101,7 +101,7 @@ export function homeHtml(): string {
     <a class="text-link" href="#showcase"><span class="play-small" aria-hidden="true">▶</span> See a real reel <span class="muted">/ 28 seconds</span></a>
   </div>
   <div class="hero-art" role="img" aria-label="A repository transforms into a film with a title, narrated scenes, and captions.">
-    <div class="art-top"><span>REPO → REEL</span><span class="red-dot">● <span>READY WHEN YOU ARE</span></span></div>
+    <div class="art-top"><span>REPO → REEL</span><span class="signal-dot">● <span>READY WHEN YOU ARE</span></span></div>
     <div class="source-card"><span class="source-symbol">⌘</span><div><b>your-next-big-idea</b><span>README.md &nbsp; / &nbsp; source code</span></div><span class="source-check">✓</span></div>
     <div class="connector"><span>↓</span><span>LET’S TELL YOUR STORY</span></div>
     <div class="film-frame">
@@ -126,7 +126,7 @@ export function homeHtml(): string {
 </section>
 <section class="showcase" id="showcase"><div class="wrap showcase-grid">
   <div><p class="eyebrow">ACTUAL OUTPUT. PRESS PLAY.</p><h2>A little less<br>“read the docs.”<br><em>A little more show.</em></h2><p>Meet Hermes × Zouroboros in a short, narrated introduction rendered with Huashu Keynote.</p><div class="tags"><span>Keynote</span><span>16:9</span><span>28 seconds</span></div><a class="text-link" href="/studio?renderer=huashu-keynote">Try this animation style <span aria-hidden="true">↗</span></a></div>
-  <div class="demo"><video controls playsinline preload="none" poster="/site/hermes-keynote.jpg" aria-label="Hermes and Zouroboros narrated demo"><source src="/site/hermes-keynote.mp4" type="video/mp4"><track kind="captions" src="/site/hermes-keynote.vtt" srclang="en" label="English" default>Your browser does not support video. <a href="/site/hermes-keynote.mp4">Download the demo</a>.</video><div class="demo-caption"><span>HERMES × ZOUROBOROS</span><a href="/site/hermes-keynote.mp4" download>Download MP4 ↓</a></div><details><summary>Read the transcript</summary><p>Meet Hermes and Zouroboros, a persistent workshop for your Linux VPS. Store decisions in shared memory. Retrieve the context when you return to your work. Connect Hermes through local MCP and inspect ready factory work without reserving or dispatching tickets. Prepare a campaign, review the plan, then explicitly start workers with your configured model provider.</p></details></div>
+  <div class="demo"><div class="sprocket" aria-hidden="true"></div><video controls playsinline preload="none" poster="/site/hermes-keynote.jpg" aria-label="Hermes and Zouroboros narrated demo"><source src="/site/hermes-keynote.mp4" type="video/mp4"><track kind="captions" src="/site/hermes-keynote.vtt" srclang="en" label="English" default>Your browser does not support video. <a href="/site/hermes-keynote.mp4">Download the demo</a>.</video><div class="sprocket" aria-hidden="true"></div><div class="demo-caption"><span>HERMES × ZOUROBOROS</span><a href="/site/hermes-keynote.mp4" download>Download MP4 ↓</a></div><details><summary>Read the transcript</summary><p>Meet Hermes and Zouroboros, a persistent workshop for your Linux VPS. Store decisions in shared memory. Retrieve the context when you return to your work. Connect Hermes through local MCP and inspect ready factory work without reserving or dispatching tickets. Prepare a campaign, review the plan, then explicitly start workers with your configured model provider.</p></details></div>
 </div></section>
 <section class="section wrap formats" id="formats"><div class="section-heading"><div><p class="eyebrow">ONE REPO. MANY SCREENS.</p><h2>Made for wherever<br>your work goes.</h2></div><p>A README introduction. A release announcement. A quick scroll-stopper. Pick a frame that fits.</p></div>
 <div class="format-grid">
@@ -143,6 +143,6 @@ export function homeHtml(): string {
 <details><summary>Can I run it on my own server?</summary><p>Yes. RepoReel is open source. The repository documents Bun, rendering dependencies, and model-provider setup. Generation uses the server’s configured model provider and compute resources. <a href="https://github.com/marlandoj/reporeel#running-it-yourself">Read the setup guide.</a></p></details>
 </div></section>
 <section class="closing wrap"><p class="eyebrow">YOU’VE ALREADY DONE THE HARD PART.</p><h2>Now give it<br>a great opening scene.</h2><a href="/studio" class="button">Make your first reel <span aria-hidden="true">→</span></a><p>No account. Your story. Action.</p></section>
-</main><footer class="wrap"><a class="brand" href="/"><span class="brand-icon" aria-hidden="true">▶</span> RepoReel.</a><p>Made for the things you build.</p><nav aria-label="Footer"><a href="/studio">Studio</a><a href="/ste100">Plain-language writer</a><a href="https://github.com/marlandoj/reporeel">Source ${arrow}</a></nav><small>Videos are AI-generated from public repository data. Review for accuracy.</small></footer>
+</main><footer class="wrap"><a class="brand" href="/"><span class="brand-icon" aria-hidden="true">▶</span> RepoReel.</a><p>Made for the things you build.</p><nav aria-label="Footer"><a href="/studio">Studio</a><a href="/ste100">Plain-language writer</a><a href="https://github.com/marlandoj/reporeel">Source ${arrow}</a></nav><small>Videos are AI-generated from public repository data. Review for accuracy. Reels are automatically deleted 48 hours after rendering.</small></footer>
 </body></html>`;
 }
