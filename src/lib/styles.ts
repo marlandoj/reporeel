@@ -1,9 +1,9 @@
 import type { JobOptions, Format } from "./options";
 
-export type Style = "studio" | "3b1b" | "eli5" | "whiteboard" | "terminal";
+export type Style = "studio" | "3b1b" | "eli5" | "whiteboard" | "terminal" | "diff" | "graph";
 
 /** Selectable style ids, in the order the operator dropdown lists them. */
-export const STYLE_IDS: Style[] = ["studio", "3b1b", "eli5", "whiteboard", "terminal"];
+export const STYLE_IDS: Style[] = ["studio", "3b1b", "eli5", "whiteboard", "terminal", "diff", "graph"];
 
 export type Motion = {
   ease: string;
@@ -94,6 +94,10 @@ const VOICE: Record<Style, string> = {
     "- Prefer a specific number or a specific file over a general claim.",
   terminal:
     "Write terse operational copy, like a build log or release notes. Present tense, active voice, short lines, numbers early. No warm-up.",
+  diff:
+    "Write like a senior engineer walking a teammate through a pull request. Name files and symbols exactly as they appear. Short declarative sentences, present tense, no throat-clearing. Numbers early: how many lines added and removed, which files.",
+  graph:
+    "Write like a release-notes author narrating project history. One event per scene, in chronological order. Short lines. Dates, tags, and hashes verbatim — never paraphrase a tag or invent a commit.",
 };
 
 const BLUEPRINT: Record<Style, string> = {
@@ -108,6 +112,12 @@ const BLUEPRINT: Record<Style, string> = {
     "Use the scene kinds this way: title, text, list, code, stats, outro. Keep every line short enough to write by hand.",
   terminal:
     "Use the scene kinds this way: title, stats, list, code, text, outro. Lead every scene with the number or the command.",
+  diff:
+    "Use the scene kinds this way: title (the PR or compare range), stats (the change counts: additions, deletions, files changed, commits), list (the files touched, most-changed first), code (the diff itself: the heading is the file path, and the lines are real unified-diff rows — each line starts with \"+\", \"-\", \"@@\", or a single space for context, for example \"@@ -12,4 +12,5 @@\", \"+const retries = 3\", \"-const retries = 0\"), text (why the change matters), outro. " +
+    "Never invent diff content that is not in the data.",
+  graph:
+    "Use the scene kinds this way: title (the release or the history range), list (the commit timeline: each line starts with the short hash, then the message, for example \"a1b2c3d fix the retry loop\" or \"e4f5a6b (tag: v2.1.0) ship the new renderer\" — put the tag in parentheses exactly as \"(tag: v1.2.0)\"), stats (the history counts: commits, contributors, tags, or files), text (the headline change of the release), outro. " +
+    "Never invent commits or tags.",
 };
 
 const MOTION: Record<Style, Motion> = {
@@ -116,6 +126,8 @@ const MOTION: Record<Style, Motion> = {
   eli5: { ease: "back.out(1.5)", pop: "elastic.out(1,0.62)", dur: 0.62, stagger: 0.2, rise: 20, slide: 0, drift: 1.012 },
   whiteboard: { ease: "power2.out", pop: "back.out(2.2)", dur: 0.45, stagger: 0.1, rise: 12, slide: -16, drift: 1.008 },
   terminal: { ease: "steps(6)", pop: "steps(1)", dur: 0.1, stagger: 0.045, rise: 0, slide: 0, drift: 1.0 },
+  diff: { ease: "power2.out", pop: "back.out(1.6)", dur: 0.5, stagger: 0.1, rise: 24, slide: -20, drift: 1.008 },
+  graph: { ease: "power3.out", pop: "back.out(1.8)", dur: 0.55, stagger: 0.14, rise: 26, slide: -22, drift: 1.01 },
 };
 
 /** Identity at module scope: the stylesheet numbers in this file are already final pixels. */
@@ -351,6 +363,131 @@ export const STYLES: Record<Style, StyleSpec> = {
   .code-prompt { color: var(--accent-2); }
   .code-line { color: #d8ffe0; }
   .brand-accent { color: var(--accent-2); }`,
+  },
+  diff: {
+    id: "diff",
+    label: "Diff",
+    blurb:
+      "PR review look: file header with +/- chips, hunk headers, green/red diff rows.",
+    avoid: [/\b(?:leverage|utiliz|seamless(?:ly)?|game[- ]chang(?:er|ing)|revolutionary|world[- ]class|industry[- ]leading|best[- ]in[- ]class)\b/i],
+    avoidLabel: "sales hype",
+    expect: { analogy: false, equation: false },
+    layout: "cards",
+    reveal: "group", revealAxis: "y", revealShift: 24, revealDur: 0.4, d: 0.5, enter: "power2.out", pop: "back.out(1.6)", popDur: 0.5, typeDur: 0.045, slideFrom: -20, slideDur: 0.45, slideStagger: 0.12, statStagger: 0.12, cam: 0.01, camFrom: 1.025,
+    motion: MOTION.diff,
+    voice: VOICE.diff,
+    blueprint: BLUEPRINT.diff,
+    note: "Diff look: file headers, +/- stat chips, green and red hunk rows.",
+    vars: `
+  --bg: #0a0d12;
+  --bg-far: #0d1117;
+  --fg: #e6edf3;
+  --muted: #8b949e;
+  --faint: #5d6672;
+  --accent: #3fb950;
+  --accent-2: #f85149;
+  --accent-3: #d29922;
+  --panel: rgba(230,237,243,.04);
+  --panel-2: rgba(230,237,243,.08);
+  --line: rgba(230,237,243,.12);
+  --code-bg: #0d1117;
+  --radius: 10px;
+  --font: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --display: var(--font);
+  --mono: "DejaVu Sans Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --math: "cmmi10", "TeX Gyre Termes Math", Georgia, serif;
+  --cap-bg: rgba(10,13,18,.8);
+  --cap-fg: #e6edf3;
+  --cap-border: rgba(230,237,243,.12);
+  --eyebrow-tracking: .24em;`,
+    css: `
+  #bg { background: linear-gradient(165deg, #0d1117 0%, #0a0d12 70%); }
+  #bg-grid { opacity: .3; }
+  #glow-a { background: radial-gradient(circle, rgba(63,185,80,.08), transparent 70%); }
+  #glow-b { background: radial-gradient(circle, rgba(248,81,73,.06), transparent 70%); }
+  .eyebrow { color: var(--accent); }
+  .stat-value { color: var(--fg); }
+  .stat-card:nth-child(1) .stat-value { color: #7ee787; }
+  .stat-card:nth-child(2) .stat-value { color: #ffa198; }
+  .list-bar { background: var(--accent-3); }
+  .brand-accent { color: var(--accent); }
+  .diff-file { display: flex; align-items: center; justify-content: space-between; gap: 16px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; padding: 12px 20px; }
+  .diff-path { font-family: var(--mono); font-size: 20px; font-weight: 700; color: var(--fg); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .diff-stats { display: flex; gap: 8px; flex-shrink: 0; }
+  .diff-chip { font-family: var(--mono); font-size: 16px; font-weight: 700; border-radius: 6px; padding: 3px 10px; }
+  .diff-chip.add { color: #7ee787; background: rgba(63,185,80,.15); }
+  .diff-chip.del { color: #ffa198; background: rgba(248,81,73,.15); }
+  .diff-panel { background: var(--code-bg); border: 1px solid var(--line); border-radius: 10px; padding: 16px 0; font-family: var(--mono); overflow: hidden; }
+  .diff-hunk { font-size: 18px; color: var(--accent-3); background: rgba(210,153,34,.08); padding: 6px 22px; }
+  .diff-row { display: flex; font-size: 19px; line-height: 1.55; padding: 2px 22px 2px 0; }
+  .diff-num { width: 44px; flex-shrink: 0; text-align: center; color: var(--faint); }
+  .diff-code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .diff-add { background: rgba(63,185,80,.1); color: #7ee787; }
+  .diff-add .diff-num { color: #3fb950; }
+  .diff-del { background: rgba(248,81,73,.1); color: #ffa198; }
+  .diff-del .diff-num { color: #f85149; }
+  .diff-ctx { color: var(--muted); }
+  .diff-empty { font-size: 18px; color: var(--faint); padding: 8px 22px; }`,
+  },
+  graph: {
+    id: "graph",
+    label: "Graph",
+    blurb:
+      "Commit timeline: branch lanes, nodes and edges, tag pills, release history.",
+    avoid: [/\b(?:leverage|utiliz|seamless(?:ly)?|game[- ]chang(?:er|ing)|revolutionary|world[- ]class|industry[- ]leading|best[- ]in[- ]class)\b/i],
+    avoidLabel: "sales hype",
+    expect: { analogy: false, equation: false },
+    layout: "cards",
+    reveal: "group", revealAxis: "y", revealShift: 24, revealDur: 0.4, d: 0.55, enter: "power3.out", pop: "back.out(1.8)", popDur: 0.55, typeDur: 0.045, slideFrom: -22, slideDur: 0.5, slideStagger: 0.14, statStagger: 0.12, cam: 0.012, camFrom: 1.03,
+    motion: MOTION.graph,
+    voice: VOICE.graph,
+    blueprint: BLUEPRINT.graph,
+    note: "Graph look: commit timeline with branch lanes, nodes, edges, and tag pills.",
+    vars: `
+  --bg: #0a0c11;
+  --bg-far: #0e1220;
+  --fg: #e8eef6;
+  --muted: #93a0b4;
+  --faint: #5f6b80;
+  --accent: #f0a832;
+  --accent-2: #2dd4bf;
+  --accent-3: #a78bfa;
+  --panel: rgba(232,238,246,.045);
+  --panel-2: rgba(232,238,246,.09);
+  --line: rgba(232,238,246,.11);
+  --code-bg: #0d1017;
+  --radius: 14px;
+  --font: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --display: var(--font);
+  --mono: "DejaVu Sans Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --math: "cmmi10", "TeX Gyre Termes Math", Georgia, serif;
+  --cap-bg: rgba(10,12,17,.8);
+  --cap-fg: #e8eef6;
+  --cap-border: rgba(232,238,246,.12);
+  --eyebrow-tracking: .28em;`,
+    css: `
+  #bg { background: linear-gradient(160deg, #0e1220 0%, #0a0c11 65%); }
+  #bg-grid { opacity: .35; }
+  #glow-a { background: radial-gradient(circle, rgba(240,168,50,.09), transparent 70%); }
+  #glow-b { background: radial-gradient(circle, rgba(45,212,191,.07), transparent 70%); }
+  .eyebrow { color: var(--accent); }
+  .stat-value { color: var(--accent); }
+  .list-bar { background: var(--accent); }
+  .brand-accent { color: var(--accent); }
+  .tl { display: flex; flex-direction: column; }
+  .tl-item { display: flex; gap: 18px; align-items: stretch; }
+  .tl-rail { width: 28px; flex-shrink: 0; }
+  .tl-rail line, .tl-rail circle { transform-box: fill-box; transform-origin: center; }
+  .tl-edge { stroke: var(--faint); stroke-width: 2; opacity: .75; }
+  .tl-node { stroke: var(--bg); stroke-width: 2; }
+  .tl-node.lane-0 { fill: var(--accent); }
+  .tl-node.lane-1 { fill: var(--accent-2); }
+  .tl-node.lane-2 { fill: var(--accent-3); }
+  .tl-node.lane-3 { fill: #58c4dd; }
+  .tl-card { flex: 1; min-width: 0; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 13px 20px; margin-bottom: 14px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  .tl-hash { font-family: var(--mono); font-size: 17px; font-weight: 700; color: var(--accent); flex-shrink: 0; }
+  .tl-msg { font-size: 22px; font-weight: 600; color: var(--fg); flex: 1; min-width: 180px; overflow-wrap: anywhere; }
+  .tag-pill { font-family: var(--mono); font-size: 15px; font-weight: 700; color: var(--accent-2); border: 1px solid var(--accent-2); background: rgba(45,212,191,.1); border-radius: 999px; padding: 4px 12px; white-space: nowrap; }`,
   },
 };
 

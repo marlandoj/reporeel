@@ -294,6 +294,143 @@ function documentExists(s: Scene, key: string): boolean {
 }
 
 /* ------------------------------------------------------------------ *
+ * Style-specific scene builders (diff, graph)
+ * ------------------------------------------------------------------ */
+
+/** Route a scene through a style's custom builder when it has one. */
+function styleSceneBody(st: StyleSpec, s: Scene, i: number, L: Layout, r: Reveal): string {
+  if (st.id === "diff" && s.kind === "code") return diffCodeBody(s, i, r);
+  if (st.id === "graph" && s.kind === "list") return graphListBody(s, i, r);
+  return sceneBody(s, i, L, r);
+}
+
+function styleSceneTweens(st: StyleSpec, s: Scene, i: number, t: Timing, r: Reveal, out: string[]): void {
+  if (st.id === "diff" && s.kind === "code") return diffCodeTweens(s, i, t, st, out);
+  if (st.id === "graph" && s.kind === "list") return graphListTweens(s, i, t, st, out);
+  cardSceneTweens(s, i, t, r, st, out);
+}
+
+type DiffRow = { kind: "hunk" | "add" | "del" | "ctx"; text: string };
+
+function diffRows(s: Scene): { rows: DiffRow[]; adds: number; dels: number } {
+  const rows: DiffRow[] = [];
+  let adds = 0;
+  let dels = 0;
+  for (const ln of (s.lines ?? []).slice(0, 8)) {
+    if (ln.startsWith("@@")) rows.push({ kind: "hunk", text: ln });
+    else if (ln.startsWith("+")) {
+      adds++;
+      rows.push({ kind: "add", text: ln.slice(1) });
+    } else if (ln.startsWith("-")) {
+      dels++;
+      rows.push({ kind: "del", text: ln.slice(1) });
+    } else rows.push({ kind: "ctx", text: ln.replace(/^ /, "") });
+  }
+  return { rows, adds, dels };
+}
+
+/**
+ * PR-diff frame: a file header with the path and +/- stat chips, then the
+ * hunk rows in green/red with a sign gutter.
+ */
+function diffCodeBody(s: Scene, i: number, r: Reveal): string {
+  const { rows, adds, dels } = diffRows(s);
+  const head = r.field(s.heading || "changes", `s${i}-h`);
+  const body =
+    rows.length === 0
+      ? `<div class="diff-empty">No diff rows in this scene.</div>`
+      : rows
+          .map((row, j) => {
+            const id = `s${i}-d${j}`;
+            if (row.kind === "hunk") return `<div class="diff-hunk" id="${id}">${esc(row.text)}</div>`;
+            const sign = row.kind === "add" ? "+" : row.kind === "del" ? "\u2212" : " ";
+            return `<div class="diff-row diff-${row.kind}" id="${id}"><span class="diff-num">${sign}</span><span class="diff-code">${esc(row.text)}</span></div>`;
+          })
+          .join("");
+  return `<div class="pad-col">
+    <div class="diff-file" id="s${i}-f">
+      <span class="diff-path" id="s${i}-h">${head}</span>
+      <span class="diff-stats"><span class="diff-chip add">+${adds}</span><span class="diff-chip del">\u2212${dels}</span></span>
+    </div>
+    <div class="diff-panel" id="s${i}-p">${body}</div>
+  </div>`;
+}
+
+function diffCodeTweens(s: Scene, i: number, t: Timing, st: StyleSpec, out: string[]): void {
+  const at = (off: number) => (t.start + off).toFixed(2);
+  out.push(`tl.fromTo("#s${i}-f",{y:22,opacity:0},{y:0,opacity:1,duration:${st.d},ease:"${st.enter}"},${at(0.08)});`);
+  out.push(`tl.fromTo("#s${i}-p",{y:20,opacity:0},{y:0,opacity:1,duration:${st.d},ease:"${st.enter}"},${at(0.2)});`);
+  const n = Math.min(8, (s.lines ?? []).length);
+  for (let j = 0; j < n; j++) {
+    out.push(
+      `tl.fromTo("#s${i}-d${j}",{x:${st.slideFrom},opacity:0},{x:0,opacity:1,duration:${st.slideDur},ease:"${st.motion.ease}"},${at(0.34 + j * 0.09)});`
+    );
+  }
+  out.push(`tl.fromTo("#s${i}-inner",{scale:${st.camFrom}},{scale:1,duration:${t.dur.toFixed(2)},ease:"none"},${t.start.toFixed(2)});`);
+}
+
+type Commit = { hash: string; msg: string; tags: string[]; lane: number };
+
+function parseCommit(line: string, j: number): Commit {
+  const m = line.match(/^([0-9a-f]{5,12})\s+(.*)$/i);
+  const hash = m ? m[1]! : "";
+  let msg = (m ? m[2]! : line).trim();
+  const tags: string[] = [];
+  msg = msg
+    .replace(/\(\s*tag:\s*([^)]+)\)|\[([^\]]+)\]/g, (_f, a: string, b: string) => {
+      tags.push((a ?? b).trim());
+      return "";
+    })
+    .trim();
+  const lane = hash ? parseInt(hash[0]!, 16) % 4 : j % 4;
+  return { hash, msg, tags, lane };
+}
+
+/**
+ * Commit-timeline frame: a vertical spine with lane-coloured nodes and
+ * connecting edges drawn as SVG, commit message cards beside the nodes, and
+ * tag pills for releases.
+ */
+function graphListBody(s: Scene, i: number, r: Reveal): string {
+  const commits = (s.lines ?? []).slice(0, 4).map((l, j) => parseCommit(l, j));
+  const head = r.field(s.heading, `s${i}-h`);
+  const items = commits
+    .map((c, j) => {
+      const top = j === 0 ? 32 : 0;
+      const bot = j === commits.length - 1 ? 32 : 64;
+      const pills = c.tags.map((tag) => `<span class="tag-pill">${esc(tag)}</span>`).join("");
+      const msg = c.msg ? r.field(c.msg, `s${i}-m${j}`) : "";
+      return `<div class="tl-item" id="s${i}-g${j}">
+        <svg class="tl-rail" viewBox="0 0 24 64" preserveAspectRatio="none" aria-hidden="true">
+          <line id="s${i}-e${j}" class="tl-edge" x1="12" y1="${top}" x2="12" y2="${bot}" />
+          <circle id="s${i}-n${j}" class="tl-node lane-${c.lane}" cx="12" cy="32" r="7" />
+        </svg>
+        <div class="tl-card" id="s${i}-k${j}">
+          ${c.hash ? `<span class="tl-hash">${esc(c.hash)}</span>` : ""}
+          <span class="tl-msg" id="s${i}-mw${j}">${msg}</span>
+          ${pills}
+        </div>
+      </div>`;
+    })
+    .join("");
+  return `<div class="pad-col">${head ? `<div class="heading" id="s${i}-h">${head}</div>` : ""}<div class="tl" id="s${i}-tl">${items}</div></div>`;
+}
+
+function graphListTweens(s: Scene, i: number, t: Timing, st: StyleSpec, out: string[]): void {
+  const at = (off: number) => (t.start + off).toFixed(2);
+  out.push(`tl.fromTo("#s${i}-h",{y:26,opacity:0},{y:0,opacity:1,duration:${st.d},ease:"${st.enter}"},${at(0.08)});`);
+  const n = Math.min(4, (s.lines ?? []).length);
+  for (let j = 0; j < n; j++) {
+    out.push(`tl.fromTo("#s${i}-e${j}",{scaleY:0},{scaleY:1,duration:0.4,ease:"power2.out"},${at(0.3 + j * 0.24)});`);
+    out.push(`tl.fromTo("#s${i}-n${j}",{scale:0},{scale:1,duration:${st.popDur},ease:"${st.pop}"},${at(0.36 + j * 0.24)});`);
+    out.push(
+      `tl.fromTo("#s${i}-k${j}",{x:${st.slideFrom},opacity:0},{x:0,opacity:1,duration:${st.slideDur},ease:"${st.motion.ease}"},${at(0.44 + j * 0.24)});`
+    );
+  }
+  out.push(`tl.fromTo("#s${i}-inner",{scale:${st.camFrom}},{scale:1,duration:${t.dur.toFixed(2)},ease:"none"},${t.start.toFixed(2)});`);
+}
+
+/* ------------------------------------------------------------------ *
  * Board layout (3b1b)
  * ------------------------------------------------------------------ */
 
@@ -832,12 +969,12 @@ export function buildComposition(
   const scenes = script.scenes
     .map(
       (s, i) => `<section class="clip scene" id="scene-${i}" data-start="${timings[i]!.start.toFixed(2)}" data-duration="${timings[i]!.dur.toFixed(2)}" data-track-index="1">
-        <div class="scene-inner" id="s${i}-inner">${sceneBody(s, i, L, r)}</div>
+        <div class="scene-inner" id="s${i}-inner">${styleSceneBody(st, s, i, L, r)}</div>
       </section>`
     )
     .join("\n");
   const tweens: string[] = [];
-  script.scenes.forEach((s, i) => cardSceneTweens(s, i, timings[i]!, r, st, tweens));
+  script.scenes.forEach((s, i) => styleSceneTweens(st, s, i, timings[i]!, r, tweens));
 
   const lift = opts.captions ? L.contentLift : 0;
   const sceneCss = `  .scene-inner { padding-bottom: ${lift}px; }`;

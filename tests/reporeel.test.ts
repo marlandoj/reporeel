@@ -191,4 +191,73 @@ describe("composition", () => {
     // for most of the shot. It must land in the opening seconds.
     expect(Math.max(...times)).toBeLessThan(2.5);
   });
+
+  test("diff and graph render every scene kind", () => {
+    for (const id of ["diff", "graph"] as const) {
+      for (const kind of ["title", "stats", "text", "list", "code", "outro"]) {
+        const dir = `/tmp/rr-test/${id}-${kind}`;
+        const audio = [{ path: "", seconds: 3 }];
+        const out = buildComposition(script(kind), audio as never, dir, opts({ style: id }));
+        expect(out.total).toBeGreaterThan(0);
+        expect(Bun.file(`${dir}/index.html`).size).toBeGreaterThan(1000);
+      }
+    }
+  });
+
+  test("diff code scenes render +/- line markup with stat chips", async () => {
+    const dir = "/tmp/rr-test/diff-check";
+    const audio = [{ path: "", seconds: 3 }];
+    const diffScript = {
+      title: "PR #42",
+      scenes: [
+        {
+          kind: "code",
+          heading: "src/lib/queue.ts",
+          narration: "The queue now retries failed jobs.",
+          lines: ["@@ -12,4 +12,5 @@", "+const retries = 3", "-const retries = 0", " return run(job);"],
+        },
+      ],
+    } as unknown as VideoScript;
+    buildComposition(diffScript, audio as never, dir, opts({ style: "diff" }));
+    const html = await Bun.file(`${dir}/index.html`).text();
+    expect(html).toContain("diff-hunk");
+    expect(html).toContain("diff-add");
+    expect(html).toContain("diff-del");
+    expect(html).toContain("diff-ctx");
+    expect(html).toContain("diff-chip add");
+    expect(html).toContain("diff-chip del");
+    expect(html).toContain("src/lib/queue.ts");
+    // stat chips count the added and removed rows
+    expect(html).toContain("+1");
+    expect(html).toContain("−1");
+  });
+
+  test("graph list scenes render node/edge svg with tag pills", async () => {
+    const dir = "/tmp/rr-test/graph-check";
+    const audio = [{ path: "", seconds: 3 }];
+    const graphScript = {
+      title: "v2.1.0",
+      scenes: [
+        {
+          kind: "list",
+          heading: "Commits",
+          narration: "Three commits shipped.",
+          lines: [
+            "e4f5a6b (tag: v2.1.0) ship the new renderer",
+            "a1b2c3d fix the retry loop",
+            "9d8e7f6 update the docs",
+          ],
+        },
+      ],
+    } as unknown as VideoScript;
+    buildComposition(graphScript, audio as never, dir, opts({ style: "graph" }));
+    const html = await Bun.file(`${dir}/index.html`).text();
+    expect(html).toContain("<svg");
+    expect(html).toContain("tl-node");
+    expect(html).toContain("tl-edge");
+    expect(html).toContain("tag-pill");
+    expect(html).toContain("v2.1.0");
+    expect(html).toContain("e4f5a6b");
+    expect(html).toContain("fix the retry loop");
+  });
 });
