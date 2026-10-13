@@ -5,7 +5,7 @@ import { dirSize, removeDir } from "./files";
 import { log } from "./log";
 
 const DAY = 86_400_000;
-const RETENTION_DAYS = Number(process.env.REPOREEL_RETENTION_DAYS ?? 30);
+const RETENTION_DAYS = Number(process.env.REPOREEL_RETENTION_DAYS ?? 2);
 const MAX_STORAGE_MB = Number(process.env.REPOREEL_MAX_STORAGE_MB ?? 1500);
 const REVIEW_TTL_HOURS = Number(process.env.REPOREEL_REVIEW_TTL_HOURS ?? 24);
 const FAILED_TTL_HOURS = 24;

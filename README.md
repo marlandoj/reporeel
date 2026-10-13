@@ -113,7 +113,7 @@ Optional environment:
 | `REPOREEL_MAX_QUEUE` | max active jobs | 6 |
 | `RENDER_DISABLED` | any nonempty value pauses generation, queue processing and AI attempts; a `STOP_GENERATION` file in the data directory also pauses at runtime | unset |
 | `REPOREEL_DATA_DIR` | where jobs, media, and the SQLite queue live | `./data` |
-| `REPOREEL_RETENTION_DAYS` | delete finished reels older than this on the hourly sweep | 30 |
+| `REPOREEL_RETENTION_DAYS` | delete finished reels older than this on the hourly sweep | 2 |
 | `HUASHU_RENDER_TIMEOUT_MIN` | Huashu Keynote render timeout, minutes (canvas capture is CPU-heavy; budget well above reel duration) | 30 |
 
 One-off CLI render, no server:

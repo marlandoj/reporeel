@@ -461,7 +461,8 @@ ${metaTags(ctx)}
 <footer>
   <p>Built solo in 48 hours for <a href="https://hackyard.tech" target="_blank" rel="noopener">Hackyard Yard #1</a> (2nd place). Theme: no accounts.</p>
   <p>Also: the <a href="/ste100">plain-language writer</a> (ASD-STE100) for operators.<br />
-  Open source at <a href="https://github.com/marlandoj/reporeel" target="_blank" rel="noopener">github.com/marlandoj/reporeel</a>. Videos are AI-generated from public repo data.</p>
+  Open source at <a href="https://github.com/marlandoj/reporeel" target="_blank" rel="noopener">github.com/marlandoj/reporeel</a>. Videos are AI-generated from public repo data.<br />
+  Reels are automatically deleted 48 hours after rendering.</p>
 </footer>
 <script>
 (function () {
