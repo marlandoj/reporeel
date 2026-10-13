@@ -25,7 +25,7 @@ The finished reel lives at a shareable `/v/:id` link (with its own poster and OG
 | `grounding` | `readme` \| `code` \| `both` | what the script is allowed to draw from: README and metadata, the source tree + manifest + entry file, or both (default `both`) |
 | `format` | `landscape` 16:9 1280x720 \| `vertical` 9:16 720x1280 \| `square` 1:1 1080x1080 | landscape suits YouTube, X, and LinkedIn; vertical suits Shorts, Reels, and TikTok; square suits feeds |
 | `renderer` | `hyperframes` \| `huashu-keynote` | Optional Keynote animation engine; [setup, timing and sample](docs/huashu.md). Default `hyperframes`. |
-| `style` | `studio` \| `3b1b` \| `eli5` \| `whiteboard` \| `terminal` | visual treatment. `studio` is the original dark card deck. `3b1b` renders a 3Blue1Brown-style chalkboard explainer with hand-drawn SVG mobjects. `eli5` is a warm, plain-language explainer. `whiteboard` is light marker on white. `terminal` is a monospace dev-tool look. See **Visual styles** below. |
+| `style` | `studio` \| `3b1b` \| `eli5` \| `whiteboard` \| `terminal` \| `diff` \| `graph` | visual treatment. `studio` is the original dark card deck. `3b1b` renders a 3Blue1Brown-style chalkboard explainer with hand-drawn SVG mobjects. `eli5` is a warm, plain-language explainer. `whiteboard` is light marker on white. `terminal` is a monospace dev-tool look. See **Visual styles** below. |
 | `plain` | `true` \| `false` | write the script in Simplified Technical English under ASD-STE100, and check the narration mechanically against the rules. The report is attached to the job (default `false`) |
 | `captions` | `true` \| `false` | burned-in captions plus an `.srt` sidecar (default on for vertical and square) |
 | `review` | `true` \| `false` | pause after scripting for an editable review step (default `true`) |
@@ -41,6 +41,8 @@ The `style` option picks the whole look of the reel: palette, type, motion, came
 | `eli5` | cards | Warm paper, rounded cards, high contrast, generous spacing. The narration is also rewritten in an explain-it-like voice, so the words and the frames match. |
 | `whiteboard` | cards | Light marker on white. Big friendly type, thin rules. |
 | `terminal` | cards | Monospace, dense, dev-tool flavoured. Good for infrastructure repos. |
+| `diff` | cards | A PR-diff walkthrough: file headers with path and +/- stat chips, hunk headers (`@@ -a,b +c,d @@`), added/removed line rows in green/red with line numbers, monospace code type. The style for PR and compare URLs. |
+| `graph` | cards | A commit-graph timeline: branch lanes with nodes, connecting edges, tag pills, commit messages beside nodes. The style for repo history, releases, and compare URLs. |
 
 ```bash
 bun src/cli.ts https://github.com/owner/repo --style 3b1b

@@ -363,6 +363,8 @@ ${metaTags(ctx)}
             <option value="eli5">ELI5: warm paper, big friendly type, everyday analogies</option>
             <option value="whiteboard">Whiteboard: hand-drawn ink, sticky notes, sketch reveals</option>
             <option value="terminal">Terminal: monospace phosphor green, typed-in output</option>
+            <option value="diff">Diff: PR review look, file headers, green/red hunk rows</option>
+            <option value="graph">Graph: commit timeline, branch lanes, tag pills</option>
           </select>
           <p class="opt-blurb" id="style-blurb">The style picks the look, the motion, and the voice the narrator writes in.</p>
         </div>
