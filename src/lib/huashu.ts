@@ -7,6 +7,10 @@ import { FORMATS, type JobOptions } from "./options";
 import { buildCaptions, toSrt } from "./captions";
 import type { RenderHooks } from "./render";
 
+export function huashuAvailable(): boolean {
+  try { checkHuashu(); return true; } catch { return false; }
+}
+
 export function checkHuashu(): string {
   const root = process.env.HUASHU_ROOT;
   if (!root || !existsSync(join(root, "scripts/engine/render.py")))
@@ -65,7 +69,8 @@ export async function renderHuashu(jobDir: string, hooks: RenderHooks & { checkC
   hooks.register?.(proc);
   const unwatch = watchGenerationProcess(proc);
   let timedOut = false;
-  const timer = setTimeout(() => { timedOut = true; proc.kill(); }, 12 * 60 * 1000);
+  const renderTimeoutMs = Math.max(5, Number(process.env.HUASHU_RENDER_TIMEOUT_MIN ?? 30)) * 60 * 1000;
+  const timer = setTimeout(() => { timedOut = true; proc.kill(); }, renderTimeoutMs);
   const read = async () => {
     let buffer = "";
     for await (const chunk of proc.stdout) {

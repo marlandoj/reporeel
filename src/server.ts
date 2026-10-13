@@ -17,6 +17,7 @@ import { STYLES, type Style } from "./lib/styles";
 import { lintText, rewritePlain, steQuickReference } from "./lib/steapi";
 import { stePageHtml } from "./lib/ste100page";
 import { scriptToText } from "./lib/script";
+import { huashuAvailable } from "./lib/huashu";
 import { readScript } from "./lib/pipeline";
 import { log } from "./lib/log";
 
@@ -309,6 +310,20 @@ app.get("/og.png", async (c) => {
   return new Response(file, { headers: { "Content-Type": "image/png", "Cache-Control": "public, max-age=86400" } });
 });
 
+app.get("/fonts/:file", async (c) => {
+  const name = c.req.param("file");
+  if (!/^[a-z0-9-]+\.woff2$/.test(name)) return c.text("Not found", 404);
+  const file = Bun.file(join(import.meta.dir, "..", "public", "fonts", name));
+  if (!(await file.exists())) return c.text("Not found", 404);
+  return new Response(file, {
+    headers: {
+      "Content-Type": "font/woff2",
+      "Cache-Control": "public, max-age=31536000, immutable",
+      "Access-Control-Allow-Origin": "*",
+    },
+  });
+});
+
 app.get("/ste100", (c) => c.html(stePageHtml()));
 
 app.get("/api/ste100/reference", (c) => c.json(steQuickReference()));
@@ -390,7 +405,7 @@ app.get("/api/ste100/scripts/:id", (c) => {
 
 app.get("/healthz", (c) => {
   const storage = storageStats();
-  return c.json({ ok: true, queue: queueDepth(), working: currentJobId(), reels: storage.jobs, storageMb: Math.round(storage.bytes / 1e5) / 10 });
+  return c.json({ ok: true, queue: queueDepth(), working: currentJobId(), reels: storage.jobs, storageMb: Math.round(storage.bytes / 1e5) / 10, huashu: huashuAvailable() });
 });
 
 if (import.meta.main) {
