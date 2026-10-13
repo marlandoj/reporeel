@@ -323,7 +323,7 @@ ${metaTags(ctx)}
       <svg class="logo-mark" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#f0a832"/><path d="M12.5 10.5v11l9.5-5.5z" fill="#201304"/></svg>
       <span>Repo<b>Reel</b></span>
     </a>
-    <a class="gh-link" href="https://github.com/marlandoj/reporeel" target="_blank" rel="noopener">Source on GitHub</a>
+    <nav style="display:flex;gap:18px;align-items:center" aria-label="Studio navigation"><a class="gh-link" href="/">Home</a><a class="gh-link" href="https://github.com/marlandoj/reporeel" target="_blank" rel="noopener">Source on GitHub</a></nav>
   </header>
   <section class="hero" id="hero">
     <div class="hero-copy">
@@ -441,14 +441,14 @@ ${metaTags(ctx)}
       <a class="btn2" id="dl" download>Download MP4</a>
       <a class="btn2" id="dl-srt" download style="display:none">Download SRT</a>
       <button class="btn2" id="refresh">Check for updates</button>
-      <a class="btn2" href="/">New reel</a>
+      <a class="btn2" href="/studio">Make another</a>
     </div>
     <div class="banner" id="banner"><span id="banner-text"></span><button class="btn2 sm" id="banner-btn"></button></div>
   </section>
   <section class="msg" id="msg">
     <h2 id="msg-h"></h2>
     <p id="msg-p"></p>
-    <div class="actions" style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap"><button class="btn2" id="msg-btn" style="display:none"></button><a class="btn2" href="/">New reel</a></div>
+      <a class="btn2" href="/studio">Make another</a>
   </section>
   <section class="examples" id="examples" style="display:none">
     <div class="ex-head">
@@ -574,9 +574,10 @@ ${metaTags(ctx)}
 
   document.querySelectorAll(".seg").forEach(function (seg) {
     seg.querySelectorAll("button").forEach(function (b) {
+      b.setAttribute("aria-pressed", String(b.classList.contains("on")));
       b.addEventListener("click", function () {
-        seg.querySelectorAll("button").forEach(function (x) { x.classList.remove("on"); });
-        b.classList.add("on");
+        seg.querySelectorAll("button").forEach(function (x) { x.classList.remove("on"); x.setAttribute("aria-pressed", "false"); });
+        b.classList.add("on"); b.setAttribute("aria-pressed", "true");
         var name = seg.getAttribute("data-name");
         opts[name] = b.getAttribute("data-v");
         if (name === "format" && !state.captionsTouched) {
@@ -591,6 +592,21 @@ ${metaTags(ctx)}
   $("renderer").addEventListener("change", function () { opts.renderer = this.value; if (opts.renderer === "huashu-keynote") opts.style = "studio"; applyStyleSelect(); persistOpts(); });
   $("style").addEventListener("change", function () { opts.style = this.value; applyStyleSelect(); persistOpts(); });
   $("plain").addEventListener("change", function () { opts.plain = this.checked; applyStyleSelect(); persistOpts(); });
+  // Landing-page choices only prefill the studio; navigation never submits a job.
+  if (!JOB) {
+    var params = new URLSearchParams(location.search);
+    var repo = params.get("repo");
+    if (repo) $("url").value = repo.slice(0, 300);
+    var format = params.get("format");
+    if (["landscape", "vertical", "square"].indexOf(format) !== -1) {
+      document.querySelector('.seg[data-name="format"] button[data-v="' + format + '"]').click();
+    }
+    var renderer = params.get("renderer");
+    if (["hyperframes", "huashu-keynote"].indexOf(renderer) !== -1) {
+      opts.renderer = renderer;
+      if (renderer === "huashu-keynote") opts.style = "studio";
+    }
+  }
   applyStyleSelect();
 
   function setStage(status, reviewEnabled) {

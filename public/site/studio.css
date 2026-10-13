@@ -1,0 +1,344 @@
+/* The studio and existing watch/review states share the site's quiet, editorial palette. */
+body {
+  background: #f5f3ec;
+  color: #242923;
+  font-family: Arial, Helvetica, sans-serif;
+  color-scheme: light;
+}
+.bg,
+.bg-grid {
+  display: none;
+}
+main {
+  max-width: 1100px;
+  padding-top: 30px;
+}
+header {
+  padding-bottom: 25px;
+  border-bottom: 1px solid #d8d9cf;
+  margin-bottom: 45px;
+}
+.logo {
+  font-size: 25px;
+  letter-spacing: -1px;
+}
+.logo b {
+  color: #d83724;
+}
+.gh-link {
+  color: #555e50;
+  border-color: #b7bbae;
+  border-radius: 5px;
+}
+.gh-link:hover {
+  color: #242923;
+  border-color: #242923;
+}
+.hero h1 {
+  font-size: 54px;
+  font-weight: 500;
+  letter-spacing: -2.5px;
+}
+.hero h1 .accent {
+  color: #c93623;
+  font-family: Georgia, serif;
+  font-style: italic;
+  font-weight: 400;
+}
+.hero p {
+  font-size: 17px;
+  color: #62685d;
+}
+.noacct {
+  color: #526239;
+  background: #e6ebd6;
+  border-color: #c6d0ac;
+  border-radius: 4px;
+  font-size: 11px;
+}
+.opts,
+.panel,
+.scene-card,
+.card {
+  background: #fcfbf6;
+  border: 1px solid #d8d9cf;
+  border-radius: 7px;
+}
+.opts {
+  padding: 23px;
+}
+.opt-label,
+.opt-blurb,
+.hint,
+.words,
+.field label,
+.queue-note,
+.review-actions .spacer,
+.player .meta,
+.card .c,
+.examples h3,
+footer {
+  color: #62685d;
+}
+.opt-label {
+  font-size: 11px;
+}
+.opt-blurb {
+  line-height: 1.6;
+}
+.seg {
+  background: #efefe5;
+  border-color: #d1d5c5;
+  border-radius: 5px;
+}
+.seg button {
+  color: #555f4c;
+  border-radius: 3px;
+}
+.seg button.on {
+  background: #dbe5be;
+  color: #34422d;
+}
+.seg button small,
+.seg button.on small {
+  color: #576149;
+}
+.seg button:focus-visible,
+button:focus-visible,
+a:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #d83724;
+  outline-offset: 4px;
+}
+input[type="url"],
+input[type="text"],
+textarea,
+select {
+  background-color: #fffefa;
+  border-color: #b8beb0;
+  color: #242923;
+  border-radius: 5px;
+}
+select option {
+  background: #fffefa;
+  color: #242923;
+}
+input:focus,
+textarea:focus,
+select:focus {
+  outline: 2px solid #d83724;
+  outline-offset: 2px;
+  border-color: #d83724;
+}
+input::placeholder,
+textarea::placeholder {
+  color: #74796d;
+}
+form input[type="text"] {
+  min-width: 0;
+}
+button.cta {
+  background: #d83724;
+  color: white;
+  border-radius: 5px;
+  box-shadow: none;
+}
+button.cta:hover {
+  background: #b92e1d;
+  box-shadow: none;
+}
+.chk {
+  color: #424b3b;
+  white-space: normal;
+}
+.chk input {
+  accent-color: #c93623;
+  flex-shrink: 0;
+}
+.chk small {
+  color: #62685d;
+  white-space: normal;
+}
+.btn2 {
+  background: #f0f0e6;
+  border: 1px solid #bcc3b2;
+  color: #34422d;
+  border-radius: 5px;
+}
+.btn2:hover {
+  color: #a52c1c;
+  border-color: #c93623;
+}
+.panel .sub,
+.review .lead,
+.msg p {
+  color: #62685d;
+}
+.step {
+  color: #62685d;
+}
+.step .ico {
+  border-color: #a2ad95;
+}
+.step.active {
+  color: #a52c1c;
+}
+.step.active .ico {
+  border-color: #c93623;
+  color: #c93623;
+  animation: none;
+}
+.step.done {
+  color: #3d602a;
+}
+.step.done .ico {
+  border-color: #58753c;
+  color: #3d602a;
+}
+.bar {
+  background: #d8dfcc;
+}
+.bar i {
+  background: #6a8243;
+}
+.kind {
+  background: #e7eadb;
+  border-color: #c6cfb4;
+  color: #526239;
+}
+.warn {
+  background: #fbf0cd;
+  border-color: #c9a44a;
+  color: #695018;
+}
+.err {
+  background: #fce8e1;
+  border-color: #dba091;
+  color: #9a2b1b;
+}
+.toolcard {
+  background: #e9ecdd;
+  border-color: #c7d0b5;
+  border-radius: 6px;
+}
+.toolcard .tt {
+  color: #36472d;
+}
+.toolcard .td {
+  color: #62685d;
+}
+.player video {
+  border-radius: 7px;
+  box-shadow: 0 8px 35px #26362b14;
+  border-color: #b9c0ae;
+}
+.player .meta b {
+  color: #34422d;
+}
+.banner {
+  background: #e5edd3;
+  border-color: #bacb9c;
+  color: #34422d;
+}
+.card {
+  color: #242923;
+}
+.card:hover {
+  border-color: #c93623;
+}
+.card .thumb {
+  background: #e4e8d8;
+}
+footer a {
+  color: #475a39;
+}
+footer {
+  font-size: 12px;
+}
+.studio-nav {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.studio-note {
+  font-size: 12px !important;
+  color: #62685d !important;
+  margin-top: 20px !important;
+}
+.skip {
+  position: absolute;
+  top: -100px;
+  left: 20px;
+  z-index: 10;
+  padding: 12px;
+  background: #242923;
+  color: #fff;
+}
+.skip:focus {
+  top: 10px;
+}
+@media (max-width: 640px) {
+  main {
+    padding: 24px 20px 50px;
+  }
+  .hero h1 {
+    font-size: 44px;
+  }
+  .studio-nav {
+    gap: 8px;
+  }
+  .gh-link {
+    font-size: 11px;
+    padding: 9px;
+  }
+  .opts {
+    padding: 18px;
+  }
+  .chk {
+    align-items: flex-start;
+  }
+  .hero p {
+    font-size: 15px;
+  }
+  header {
+    margin-bottom: 35px;
+  }
+  .rewrite {
+    flex-wrap: wrap;
+  }
+  .rewrite input {
+    min-width: 0;
+    width: 100%;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+.hero .opt-blurb {
+  font-size: 13px;
+  text-align: left;
+  line-height: 1.6;
+  margin-top: 10px;
+}
+.opts .chk {
+  display: block;
+  position: relative;
+  padding-left: 28px;
+  line-height: 1.5;
+}
+.opts .chk input {
+  position: absolute;
+  left: 0;
+  top: 1px;
+  margin: 0;
+}
+.opts .chk small {
+  display: block;
+  margin-top: 2px;
+}
