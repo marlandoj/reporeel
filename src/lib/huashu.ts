@@ -1,6 +1,7 @@
 import { assertGenerationEnabled, watchGenerationProcess, ControlError } from "./controls";
-import { existsSync, mkdirSync, writeFileSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { dirname, join, resolve } from "node:path";
+import { homedir } from "node:os";
 import type { VideoScript } from "./script";
 import type { SceneAudio } from "./tts";
 import { FORMATS, type JobOptions } from "./options";
@@ -15,7 +16,95 @@ export function checkHuashu(): string {
   const root = process.env.HUASHU_ROOT;
   if (!root || !existsSync(join(root, "scripts/engine/render.py")))
     throw new Error("Huashu Keynote requires HUASHU_ROOT pointing to a huashu-art-motion checkout; see docs/huashu.md.");
+  // The checkout alone is not capability: the engine launches Playwright's
+  // Chromium, and a wiped browser cache left Keynote selectable but broken
+  // (2026-10-26: /healthz reported huashu:true with no browser installed).
+  if (!findPlaywrightBrowser(playwrightBrowsersPath(), process.env.HUASHU_PYTHON || "python3"))
+    throw new Error("Huashu Keynote requires the Playwright Chromium browser for HUASHU_PYTHON; install it during provisioning with: \"$HUASHU_PYTHON\" -m playwright install chromium (see docs/huashu.md).");
   return resolve(root);
+}
+
+/** Playwright's browser cache directory for this host, in its own resolution order. */
+export function playwrightBrowsersPath(env: Record<string, string | undefined> = process.env): string {
+  if (env.PLAYWRIGHT_BROWSERS_PATH) return env.PLAYWRIGHT_BROWSERS_PATH;
+  if (process.platform === "darwin") return join(homedir(), "Library", "Caches", "ms-playwright");
+  if (process.platform === "win32") return join(env.LOCALAPPDATA || join(homedir(), "AppData", "Local"), "ms-playwright");
+  return join(env.XDG_CACHE_HOME || join(homedir(), ".cache"), "ms-playwright");
+}
+
+/** Chromium revisions the venv's Playwright expects, from its browsers.json; null when unreadable. */
+function expectedChromiumRevisions(python: string): Set<string> | null {
+  try {
+    const venv = resolve(dirname(python), "..");
+    const sitePackages: string[] = [join(venv, "lib", "site-packages"), join(venv, "Lib", "site-packages")];
+    try {
+      for (const entry of readdirSync(join(venv, "lib"), { withFileTypes: true }))
+        if (entry.isDirectory()) sitePackages.push(join(venv, "lib", entry.name, "site-packages"));
+    } catch { /* layout differs; the fixed candidates above still apply */ }
+    for (const pkg of sitePackages) {
+      const file = join(pkg, "playwright", "driver", "package", "browsers.json");
+      if (!existsSync(file)) continue;
+      const data = JSON.parse(readFileSync(file, "utf8"));
+      const revs = new Set<string>((data.browsers ?? [])
+        .filter((b: any) => b.name === "chromium" || b.name === "chromium-headless-shell")
+        .map((b: any) => String(b.revision)));
+      if (revs.size) return revs;
+    }
+  } catch { /* probe falls back to any installed Chromium */ }
+  return null;
+}
+
+const BROWSER_EXECUTABLES = new Set(["chrome-headless-shell", "chrome", "chrome.exe", "Chromium", "headless_shell"]);
+
+function findBrowserExecutable(dir: string, depth: number): string | null {
+  let entries;
+  try { entries = readdirSync(dir, { withFileTypes: true }); } catch { return null; }
+  for (const entry of entries) {
+    const path = join(dir, entry.name);
+    if (entry.isFile() && BROWSER_EXECUTABLES.has(entry.name)) {
+      try { if (process.platform === "win32" || (statSync(path).mode & 0o111)) return path; } catch { /* keep looking */ }
+    } else if (entry.isDirectory() && depth > 0) {
+      const found = findBrowserExecutable(path, depth - 1);
+      if (found) return found;
+    }
+  }
+  return null;
+}
+
+/**
+ * Locate a usable Chromium (full build or headless shell) in Playwright's
+ * browser cache. When the venv's browsers.json is readable, only the
+ * revisions it expects count — a stale shell for another Playwright
+ * version would fail at launch just the same.
+ */
+export function findPlaywrightBrowser(browsersPath: string, python?: string): string | null {
+  if (!browsersPath || !existsSync(browsersPath)) return null;
+  const revisions = python ? expectedChromiumRevisions(python) : null;
+  let entries;
+  try { entries = readdirSync(browsersPath, { withFileTypes: true }); } catch { return null; }
+  for (const entry of entries) {
+    if (!entry.isDirectory() || !entry.name.startsWith("chromium")) continue;
+    if (revisions) {
+      const rev = entry.name.match(/-(\d+)$/)?.[1];
+      if (!rev || !revisions.has(rev)) continue;
+    }
+    const found = findBrowserExecutable(join(browsersPath, entry.name), 3);
+    if (found) return found;
+  }
+  return null;
+}
+
+/**
+ * Keep a renderer failure diagnosable: head + tail, bounded. The engine's
+ * own traceback (with the root cause) sits at the START of stderr and the
+ * wrapper's at the end; keeping only a short tail — the old slice(-800) —
+ * discarded the cause entirely.
+ */
+export function summarizeRenderError(stderr: string, max = 3000): string {
+  const text = stderr.trim();
+  if (text.length <= max) return text;
+  const head = Math.floor(max * 0.6), tail = max - head;
+  return `${text.slice(0, head)}\n…[truncated]…\n${text.slice(-tail)}`;
 }
 
 /** Frame-aligned scene boundaries keep concatenation and narration in sync. */
@@ -87,7 +176,7 @@ export async function renderHuashu(jobDir: string, hooks: RenderHooks & { checkC
     assertGenerationEnabled();
     hooks.checkCancel?.();
     if (timedOut) throw new Error("Huashu render timed out");
-    if (code !== 0) throw new Error(`Huashu render failed (exit ${code}): ${error.slice(-800)}`);
+    if (code !== 0) throw new Error(`Huashu render failed (exit ${code}): ${summarizeRenderError(error)}`);
     const out = join(jobDir, "out.mp4");
     if (!(await Bun.file(out).exists()) || Bun.file(out).size < 1000) throw new Error("Huashu produced no output");
     return out;

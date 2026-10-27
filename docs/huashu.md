@@ -27,11 +27,22 @@ export HUASHU_PYTHON=/path/to/huashu-venv/bin/python
 bun src/server.ts
 ```
 
+The install step is also wrapped in `scripts/provision-huashu.sh`
+(idempotent; run it as the service user to repair a wiped browser cache).
+`checkHuashu()` — and therefore `/healthz` — verifies that a Chromium
+build or headless shell matching the venv Playwright's `browsers.json`
+revisions actually exists in the browser cache, not just that
+`HUASHU_ROOT` is set. A host whose browser was removed reports
+`huashu: false` and the UI disables Keynote instead of failing jobs.
+
 The host also needs ffmpeg with libx264 and libass, ffprobe, Chromium system
 libraries, and RepoReel's existing Kokoro TTS setup. Keep the same browser-cache
 environment for installation and the server. Install dependencies during host
 provisioning, before accepting jobs. `HUASHU_ROOT` is checked before narration;
 Python/browser/codec errors are surfaced as failed jobs, with no silent fallback.
+Renderer failures keep the head and tail of stderr (bounded to ~3,000 chars,
+and job storage keeps 3,200), so the engine's root-cause lines survive —
+a tail-only excerpt once hid a missing-browser failure completely.
 
 ```bash
 bun src/cli.ts https://github.com/owner/repo --renderer huashu-keynote --captions
