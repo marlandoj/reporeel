@@ -199,7 +199,10 @@ export async function workOne(): Promise<boolean> {
       });
       log(`job ${id} deferred by generation controls: ${e.message}`);
     } else {
-      updateJob(id, { status: "error", phase: null, error: String(e?.message ?? e).slice(0, 400), finished_at: Date.now(), progress_done: null, progress_total: null });
+      // 3200, not 400: a renderer's root-cause lines must survive storage.
+      // At 400 the 2026-10-26 Huashu failure stored only the wrapper
+      // traceback and the actual Playwright error was unrecoverable.
+      updateJob(id, { status: "error", phase: null, error: String(e?.message ?? e).slice(0, 3200), finished_at: Date.now(), progress_done: null, progress_total: null });
       log(`job ${id} failed: ${e}`);
     }
   } finally {

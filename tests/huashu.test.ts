@@ -1,10 +1,10 @@
 import { describe, expect, test } from "bun:test";
-import { planHuashu, buildHuashuComposition } from "../src/lib/huashu";
+import { planHuashu, buildHuashuComposition, checkHuashu, findPlaywrightBrowser, playwrightBrowsersPath, summarizeRenderError } from "../src/lib/huashu";
 import { normalizeOptions, parseOptions, variantKey } from "../src/lib/options";
 import type { VideoScript } from "../src/lib/script";
-import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { chmodSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 
 const script: VideoScript = { title: "Hermes × Zouroboros", tagline: "A persistent workshop", scenes: [
   { kind: "title", heading: "Welcome", lines: ["Hermes × Zouroboros", "Your VPS workshop"], narration: "A persistent workshop for your Linux VPS." },
@@ -42,6 +42,76 @@ describe("Huashu adapter", () => {
   test("missing and invalid audio fails before rendering", () => {
     expect(() => planHuashu(script, [], normalizeOptions({}))).toThrow();
     expect(() => planHuashu(script, audio.map(a => ({ ...a, seconds: NaN })), normalizeOptions({}))).toThrow();
+  });
+  test("browser probe: finds an installed headless shell, rejects an empty cache", () => {
+    const dir = mkdtempSync(join(tmpdir(), "huashu-browsers-"));
+    try {
+      expect(findPlaywrightBrowser(dir)).toBeNull();
+      const shell = join(dir, "chromium_headless_shell-1243", "chrome-headless-shell-linux64", "chrome-headless-shell");
+      mkdirSync(dirname(shell), { recursive: true });
+      writeFileSync(shell, "");
+      if (process.platform !== "win32") chmodSync(shell, 0o755);
+      expect(findPlaywrightBrowser(dir)).toBe(shell);
+      // A directory without an executable is not a browser.
+      const empty = join(dir, "chromium-9999");
+      mkdirSync(empty, { recursive: true });
+      expect(findPlaywrightBrowser(join(dir, "chromium-9999/.."))).toBe(shell);
+    } finally { rmSync(dir, { recursive: true, force: true }); }
+  });
+  test("browser probe: a shell for the wrong Playwright revision does not count", () => {
+    const dir = mkdtempSync(join(tmpdir(), "huashu-browsers-rev-"));
+    const venv = mkdtempSync(join(tmpdir(), "huashu-venv-"));
+    try {
+      const shell = join(dir, "chromium_headless_shell-1111", "chrome-headless-shell-linux64", "chrome-headless-shell");
+      mkdirSync(dirname(shell), { recursive: true });
+      writeFileSync(shell, "");
+      if (process.platform !== "win32") chmodSync(shell, 0o755);
+      const pkg = join(venv, "lib", "python3.14", "site-packages", "playwright", "driver", "package");
+      mkdirSync(pkg, { recursive: true });
+      writeFileSync(join(pkg, "browsers.json"), JSON.stringify({ browsers: [
+        { name: "chromium", revision: "2222" }, { name: "chromium-headless-shell", revision: "2222" },
+      ] }));
+      const python = join(venv, "bin", "python");
+      // Without revision knowledge the shell counts; with it, it must not.
+      expect(findPlaywrightBrowser(dir)).toBe(shell);
+      expect(findPlaywrightBrowser(dir, python)).toBeNull();
+    } finally { rmSync(dir, { recursive: true, force: true }); rmSync(venv, { recursive: true, force: true }); }
+  });
+  test("checkHuashu fails closed when the browser is missing, passes when present", () => {
+    const root = mkdtempSync(join(tmpdir(), "huashu-root-"));
+    const browsers = mkdtempSync(join(tmpdir(), "huashu-check-browsers-"));
+    const saved = { root: process.env.HUASHU_ROOT, browsers: process.env.PLAYWRIGHT_BROWSERS_PATH, python: process.env.HUASHU_PYTHON };
+    try {
+      mkdirSync(join(root, "scripts/engine"), { recursive: true });
+      writeFileSync(join(root, "scripts/engine/render.py"), "");
+      process.env.HUASHU_ROOT = root;
+      process.env.PLAYWRIGHT_BROWSERS_PATH = browsers;
+      delete process.env.HUASHU_PYTHON;
+      expect(() => checkHuashu()).toThrow(/Playwright Chromium browser/);
+      const shell = join(browsers, "chromium_headless_shell-1243", "chrome-headless-shell-linux64", "chrome-headless-shell");
+      mkdirSync(dirname(shell), { recursive: true });
+      writeFileSync(shell, "");
+      if (process.platform !== "win32") chmodSync(shell, 0o755);
+      expect(checkHuashu()).toBe(root);
+    } finally {
+      rmSync(root, { recursive: true, force: true }); rmSync(browsers, { recursive: true, force: true });
+      if (saved.root === undefined) delete process.env.HUASHU_ROOT; else process.env.HUASHU_ROOT = saved.root;
+      if (saved.browsers === undefined) delete process.env.PLAYWRIGHT_BROWSERS_PATH; else process.env.PLAYWRIGHT_BROWSERS_PATH = saved.browsers;
+      if (saved.python === undefined) delete process.env.HUASHU_PYTHON; else process.env.HUASHU_PYTHON = saved.python;
+    }
+  });
+  test("browsers path honors PLAYWRIGHT_BROWSERS_PATH first", () => {
+    expect(playwrightBrowsersPath({ PLAYWRIGHT_BROWSERS_PATH: "/tmp/custom-browsers" })).toBe("/tmp/custom-browsers");
+  });
+  test("render errors keep the root cause at the head and the wrapper at the tail", () => {
+    expect(summarizeRenderError("short error")).toBe("short error");
+    const cause = "ROOT_CAUSE: Executable doesn't exist at /cache/chrome-headless-shell";
+    const long = `${cause}\n${"engine frame progress\n".repeat(400)}WRAPPER_TRACEBACK_END`;
+    const out = summarizeRenderError(long);
+    expect(out.length).toBeLessThanOrEqual(3100);
+    expect(out).toContain(cause);
+    expect(out).toContain("WRAPPER_TRACEBACK_END");
+    expect(out).toContain("[truncated]");
   });
   test("caption option controls both timeline and sidecar", () => {
     const dir = mkdtempSync(join(tmpdir(), "huashu-test-"));
